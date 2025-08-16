@@ -30,11 +30,14 @@
 
     .palette h2, .sidebar h2{margin:0 0 10px 0;font-size:15px}
     .catalog{display:grid;grid-template-columns:repeat(2, 1fr);gap:10px}
-    .item{border:1px solid #243053;background:linear-gradient(180deg,#141c2e,#0e162a);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;user-select:none;cursor:grab}
+    .item{position:relative;border:1px solid #243053;background:linear-gradient(180deg,#141c2e,#0e162a);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;user-select:none;cursor:grab}
     .item:active{cursor:grabbing}
     .item .icon{font-size:22px}
     .item .name{font-weight:600}
     .item .note{color:var(--muted);font-size:12px}
+
+    .info{display:inline-block;width:16px;height:16px;border-radius:50%;background:#223056;color:#a9b5d8;font-size:12px;line-height:16px;text-align:center;cursor:pointer;margin-left:4px;flex-shrink:0}
+    .item .info{position:absolute;top:6px;right:6px;margin-left:0}
 
     section.board{position:relative;background:linear-gradient(180deg, #0b1120, #0a0f1e);border:1px solid #1b2346;border-radius:var(--br);box-shadow:var(--shadow);padding:12px}
     .hud{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px}
@@ -177,6 +180,39 @@
     { id:'uni', name:'Университет', icon:'🎓', kind:'svc', edu:0.9, amenity:0.2, energy:2, pollution:0.05, cost:180 }
   ];
 
+  const INFO = {
+    buildings:{
+      res:'Жильё для населения, небольшие выбросы.',
+      comm:'Офисы и рабочие места, умеренное загрязнение.',
+      farm:'Сельхозпроизводство, требует энергию.',
+      fact:'Промышленный завод: много рабочих мест и выбросов.',
+      power:'Источник энергии для города, но загрязняет.',
+      park:'Зелёная зона, улучшает экологию и комфорт.',
+      school:'Базовое образование для жителей.',
+      hosp:'Медицинские услуги, повышает здоровье.',
+      hub:'Улучшает транспортную доступность.',
+      uni:'Высшее образование и навыки.'
+    },
+    kpi:{
+      'Население':'Численность жителей региона.',
+      'Вакансии':'Доступные рабочие места.',
+      'Занятость':'Количество занятых жителей.',
+      'Безработица':'Доля людей без работы.',
+      'ВВП (услов.)':'Совокупный выпуск экономики.',
+      'Налоговые доходы':'Поступления бюджета от налогов.',
+      'Бюджет':'Сальдо бюджета после расходов.'
+    },
+    metrics:{
+      'Доступность рабочих мест':'Близость жилья к работе; выше — лучше.',
+      'Здоровье населения':'Влияние больниц и загрязнения.',
+      'Образование / навыки':'Качество человеческого капитала.',
+      'Энергообеспечение':'Доля покрытого спроса на энергию.',
+      'Мобильность':'Транспортная доступность.',
+      'Загрязнение (больше хуже)':'Экологический ущерб территории.',
+      'Доходы бюджета (после расходов)':'Финансовый результат бюджета.'
+    }
+  };
+
   // Цвета для теплокарт (опционально можно расширить)
   const KIND_COLOR = { res:'#6ee7ff', prod:'#a78bfa', infra:'#f59e0b', green:'#22c55e', svc:'#60a5fa' };
 
@@ -220,6 +256,13 @@
       card.draggable = true;
       card.dataset.type = o.id;
       card.innerHTML = `<div class="icon">${o.icon}</div><div class="name">${o.name}</div><div class="note">${o.kind}</div>`;
+      const infoBtn = document.createElement('span');
+      infoBtn.className = 'info';
+      infoBtn.textContent = 'i';
+      infoBtn.addEventListener('mousedown', e=> e.stopPropagation());
+      infoBtn.addEventListener('dragstart', e=> e.preventDefault());
+      infoBtn.addEventListener('click', e=>{ e.stopPropagation(); notify(INFO.buildings[o.id]); });
+      card.appendChild(infoBtn);
       card.addEventListener('dragstart', e=>{
         e.dataTransfer.setData('text/plain', o.id);
       });
@@ -515,7 +558,8 @@
   }
 
   function kp(label, value, unit='', cls=''){
-    return `<div class="kpi ${cls}"><div class="label">${label}</div><div class="value">${value}${unit}</div></div>`
+    const info = INFO.kpi[label] || '';
+    return `<div class="kpi ${cls}"><div class="label">${label}<span class="info" onclick='notify(${JSON.stringify(info)})'>i</span></div><div class="value">${value}${unit}</div></div>`
   }
 
   function renderHUD(){
@@ -534,8 +578,8 @@
   function meter(label, val, goodDir='up', hint=''){
     const v = clamp(val,0,1);
     const w = Math.round(v*100);
-    let txt = w+'%';
-    return `<div class="meter"><div class="top"><div>${label}</div><div class="small">${hint}</div></div><div class="bar"><i style="width:${w}%"></i></div></div>`
+    const info = INFO.metrics[label] || '';
+    return `<div class="meter"><div class="top"><div>${label}<span class="info" onclick='notify(${JSON.stringify(info)})'>i</span></div><div class="small">${hint}</div></div><div class="bar"><i style="width:${w}%"></i></div></div>`
   }
 
   function renderMeters(){
@@ -715,7 +759,7 @@
         { target:".item[data-type='power']", allowInteract:true, html:`<b>Энергия</b><br/>Добавьте <em>Электростанцию</em>. Показатель «Энергообеспечение» должен приблизиться к 100% — иначе выпуск ограничен.`, waitFor: energyGood, autoNext:true },
         { target:".item[data-type='hub']", allowInteract:true, html:`<b>Транспорт</b><br/>Поставьте <em>Транспортный узел</em> возле жилья. Смотрите на «Мобильность» и косвенно на здоровье.`, waitFor: mobilityGood, autoNext:true },
         { target:".item[data-type='park']", allowInteract:true, html:`<b>Экология</b><br/>Поставьте <em>Парк</em> ближе к заводу и отслеживайте «Загрязнение». Чем ближе парк к источнику, тем сильнее эффект.`, onEnter:()=>{ this.prevPoll = state.metrics.pollutionIdx; }, waitFor: ()=> state.metrics.pollutionIdx < (this.prevPoll||1) - 0.02, autoNext:true },
-        { target:'.sidebar', allowInteract:false, html:`<b>Параметры модели</b><br/>Подвигайте <em>Налог на прибыль</em> — увидите изменение ВВП и бюджета через налоговый клин.`, onEnter:()=>{ this.startCorpTax = params.corpTax; }, waitFor: ()=> params.corpTax !== this.startCorpTax },
+        { target:'.sidebar', allowInteract:true, html:`<b>Параметры модели</b><br/>Подвигайте <em>Налог на прибыль</em> — увидите изменение ВВП и бюджета через налоговый клин.`, onEnter:()=>{ this.startCorpTax = params.corpTax; }, waitFor: ()=> params.corpTax !== this.startCorpTax },
         { target:'#btn-export', allowInteract:false, html:`<b>Экспорт/Импорт</b><br/>Сохраняйте сценарии в JSON и делитесь ими. На этом всё — приятного моделирования!` }
       ];
     }
