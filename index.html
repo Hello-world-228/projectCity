@@ -76,10 +76,11 @@
     .tour{position:fixed;inset:0;z-index:10000}
     .tour.hidden{display:none}
     .tour .shade{position:fixed;background:rgba(2,8,23,.62);pointer-events:auto}
-    .tour .panel{position:fixed;max-width:460px;background:linear-gradient(180deg,#121a33,#0f162b);border:1px solid #1e2a4c;border-radius:16px;box-shadow:var(--shadow);padding:12px 14px;color:var(--text)}
-    .tour .panel .content{font-size:14px;line-height:1.4}
-    .tour .panel .controls{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
-    .tour .panel .btn[disabled]{opacity:.5;cursor:not-allowed}
+    .tour-panel{position:fixed;max-width:460px;background:linear-gradient(180deg,#121a33,#0f162b);border:1px solid #1e2a4c;border-radius:16px;box-shadow:var(--shadow);padding:12px 14px;color:var(--text);z-index:10001}
+    .tour-panel.hidden{display:none}
+    .tour-panel .content{font-size:14px;line-height:1.4}
+    .tour-panel .controls{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+    .tour-panel .btn[disabled]{opacity:.5;cursor:not-allowed}
     .tour .pulse{box-shadow:0 0 0 2px rgba(110,231,255,.9), 0 0 0 8px rgba(110,231,255,.15);border-radius:10px}
   </style>
 </head>
@@ -142,13 +143,13 @@
     <div class="shade left"></div>
     <div class="shade right"></div>
     <div class="shade bottom"></div>
-    <div class="panel" id="tourPanel">
-      <div class="content" id="tourContent"></div>
-      <div class="controls">
-        <button class="btn ghost" id="tourPrev">Назад</button>
-        <button class="btn ghost" id="tourSkip">Пропустить</button>
-        <button class="btn" id="tourNext">Далее</button>
-      </div>
+  </div>
+  <div class="tour-panel hidden" id="tourPanel">
+    <div class="content" id="tourContent"></div>
+    <div class="controls">
+      <button class="btn ghost" id="tourPrev">Назад</button>
+      <button class="btn ghost" id="tourSkip">Пропустить</button>
+      <button class="btn" id="tourNext">Далее</button>
     </div>
   </div>
 
@@ -597,6 +598,23 @@
     inp.click();
   }
 
+  function captureScenario(){
+    return {
+      cells: state.cells.map(row=>row.map(cell=>cell?{...cell}:null)),
+      positions: JSON.parse(JSON.stringify(state.positions)),
+      params: {...params}
+    };
+  }
+
+  function loadScenario(data){
+    state.cells = data.cells.map(row=>row.map(cell=>cell?{...cell}:null));
+    state.positions = JSON.parse(JSON.stringify(data.positions));
+    Object.assign(params, data.params);
+    redrawAll();
+    syncParamUI();
+    recalcAll();
+  }
+
   function resetGrid(){
     state.cells = Array.from({length: GRID_ROWS}, () => Array.from({length: GRID_COLS}, () => null));
     state.positions = {};
@@ -631,7 +649,7 @@
 
   // ---------- Guided Tour Engine ----------
   const tour = {
-    active:false, step:0, prevPoll:null, startCorpTax:null,
+    active:false, step:0, prevPoll:null, startCorpTax:null, saved:null,
     get overlay(){ return document.getElementById('tour'); },
     get shades(){ return {
       top: this.overlay.querySelector('.shade.top'),
@@ -644,12 +662,21 @@
     start(){
       this.steps = this.buildSteps();
       this.active = true; this.step = 0; this.panel = document.getElementById('tourPanel');
+      this.saved = captureScenario();
+      resetGrid();
       this.overlay.classList.remove('hidden');
+      this.panel.classList.remove('hidden');
       this.goto(0);
       window.addEventListener('resize', ()=>this.position());
       window.addEventListener('scroll', ()=>this.position(), true);
     },
-    finish(){ this.active=false; this.overlay.classList.add('hidden'); document.querySelectorAll('.pulse').forEach(n=>n.classList.remove('pulse')); },
+    finish(){
+      this.active=false;
+      this.overlay.classList.add('hidden');
+      this.panel.classList.add('hidden');
+      document.querySelectorAll('.pulse').forEach(n=>n.classList.remove('pulse'));
+      if(this.saved){ loadScenario(this.saved); this.saved=null; }
+    },
     skip(){ this.finish(); },
     goto(i){
       this.step = Math.max(0, Math.min(i, this.steps.length-1));
@@ -661,15 +688,17 @@
     },
     next(){ if(this.step < this.steps.length-1){ this.goto(this.step+1); } else { this.finish(); } },
     prev(){ if(this.step>0) this.goto(this.step-1); },
-    targetEl(){
-      const sel = this.steps[this.step].target; if(!sel) return null; return document.querySelector(sel);
+    targets(){
+      const sel = this.steps[this.step].target; if(!sel) return [];
+      const sels = Array.isArray(sel)? sel : [sel];
+      return sels.map(s=>document.querySelector(s)).filter(Boolean);
     },
     position(){
-      const s = this.steps[this.step]; const el = this.targetEl(); if(!el) return;
-      const r = el.getBoundingClientRect(); const pad = 10;
-      const top = Math.max(0, r.top - pad), left = Math.max(0, r.left - pad);
-      const right = Math.min(window.innerWidth, r.right + pad);
-      const bottom = Math.min(window.innerHeight, r.bottom + pad);
+      const s = this.steps[this.step]; const els = this.targets(); if(!els.length) return;
+      const pad = 10;
+      let top=Infinity,left=Infinity,right=-Infinity,bottom=-Infinity;
+      for(const el of els){ const r = el.getBoundingClientRect(); top=Math.min(top,r.top); left=Math.min(left,r.left); right=Math.max(right,r.right); bottom=Math.max(bottom,r.bottom); }
+      top=Math.max(0,top-pad); left=Math.max(0,left-pad); right=Math.min(window.innerWidth,right+pad); bottom=Math.min(window.innerHeight,bottom+pad);
       const midTop = top, midHeight = bottom - top;
       const shades = this.shades;
       // 4-прямоугольника вокруг выделенной области
@@ -685,7 +714,7 @@
       this.overlay.style.pointerEvents = (s.allowInteract? 'none':'auto');
       // Пульсация цели
       document.querySelectorAll('.pulse').forEach(n=>n.classList.remove('pulse'));
-      el.classList.add('pulse');
+      els.forEach(el=>el.classList.add('pulse'));
     },
     evaluate(){
       const s = this.steps[this.step];
@@ -693,7 +722,6 @@
       if(!s.waitFor){ nextBtn.disabled = false; return; }
       let ok=false; try{ ok = !!s.waitFor(); }catch(e){ ok=false; }
       nextBtn.disabled = !ok;
-      if(ok && s.autoNext){ setTimeout(()=>{ if(this.step < this.steps.length-1) this.next(); }, 350); }
     },
     renderPanel(s){
       document.getElementById('tourContent').innerHTML = s.html;
@@ -709,12 +737,12 @@
       const mobilityGood = ()=> (state.metrics.mobility>0);
       return [
         { target:'#catalog', allowInteract:false, html:`<b>Каталог объектов</b><br/>Перетаскивайте объекты на карту: жильё, фермы, заводы, парки, инфраструктура. Каждый тип влияет на занятость, ВВП, экологию и бюджет. Начнём со <em>Жилого дома</em>.` },
-        { target:'#grid', allowInteract:true, html:`<b>Карта‑сетка</b><br/>Каждая клетка — сектор. Важны расстояния: <ul><li>Работа ближе к жилью → выше доступность и занятость.</li><li>Агломерация: схожие фирмы рядом получают бонус к выпуску.</li><li>Загрязнение уменьшается парками ближе к источнику.</li><li>Транспортные узлы снижают «эффективные» расстояния.</li><li>Энергия ограничивает выпуск.</li></ul><b>Действие:</b> перетащите <em>Жилой дом</em> на карту.`, waitFor: hasRes, autoNext:true },
+        { target:['#grid', ".item[data-type='res']"], allowInteract:true, html:`<b>Карта‑сетка</b><br/>Каждая клетка — сектор. Важны расстояния: <ul><li>Работа ближе к жилью → выше доступность и занятость.</li><li>Агломерация: схожие фирмы рядом получают бонус к выпуску.</li><li>Загрязнение уменьшается парками ближе к источнику.</li><li>Транспортные узлы снижают «эффективные» расстояния.</li><li>Энергия ограничивает выпуск.</li></ul><b>Действие:</b> перетащите <em>Жилой дом</em> на карту.`, waitFor: hasRes },
         { target:'#hud', allowInteract:false, html:`<b>KPI</b><br/>Сверху — моментальные индикаторы: население, занятость, ВВП, налоги и бюджет.` },
-        { target:".item[data-type='fact']", allowInteract:true, html:`<b>Промышленность</b><br/>Поставьте <em>Завод</em> и посмотрите, как растут вакансии и загрязнение. Рядом с жильём — выше доступность труда, но и влияние на здоровье.`, waitFor: hasFact, autoNext:true },
-        { target:".item[data-type='power']", allowInteract:true, html:`<b>Энергия</b><br/>Добавьте <em>Электростанцию</em>. Показатель «Энергообеспечение» должен приблизиться к 100% — иначе выпуск ограничен.`, waitFor: energyGood, autoNext:true },
-        { target:".item[data-type='hub']", allowInteract:true, html:`<b>Транспорт</b><br/>Поставьте <em>Транспортный узел</em> возле жилья. Смотрите на «Мобильность» и косвенно на здоровье.`, waitFor: mobilityGood, autoNext:true },
-        { target:".item[data-type='park']", allowInteract:true, html:`<b>Экология</b><br/>Поставьте <em>Парк</em> ближе к заводу и отслеживайте «Загрязнение». Чем ближе парк к источнику, тем сильнее эффект.`, onEnter:()=>{ this.prevPoll = state.metrics.pollutionIdx; }, waitFor: ()=> state.metrics.pollutionIdx < (this.prevPoll||1) - 0.02, autoNext:true },
+        { target:['#grid', ".item[data-type='fact']"], allowInteract:true, html:`<b>Промышленность</b><br/>Поставьте <em>Завод</em> и посмотрите, как растут вакансии и загрязнение. Рядом с жильём — выше доступность труда, но и влияние на здоровье.`, waitFor: hasFact },
+        { target:['#grid', ".item[data-type='power']"], allowInteract:true, html:`<b>Энергия</b><br/>Добавьте <em>Электростанцию</em>. Показатель «Энергообеспечение» должен приблизиться к 100% — иначе выпуск ограничен.`, waitFor: energyGood },
+        { target:['#grid', ".item[data-type='hub']"], allowInteract:true, html:`<b>Транспорт</b><br/>Поставьте <em>Транспортный узел</em> возле жилья. Смотрите на «Мобильность» и косвенно на здоровье.`, waitFor: mobilityGood },
+        { target:['#grid', ".item[data-type='park']"], allowInteract:true, html:`<b>Экология</b><br/>Поставьте <em>Парк</em> ближе к заводу и отслеживайте «Загрязнение». Чем ближе парк к источнику, тем сильнее эффект.`, onEnter:()=>{ this.prevPoll = state.metrics.pollutionIdx; }, waitFor: ()=> state.metrics.pollutionIdx < (this.prevPoll||1) - 0.02 },
         { target:'.sidebar', allowInteract:false, html:`<b>Параметры модели</b><br/>Подвигайте <em>Налог на прибыль</em> — увидите изменение ВВП и бюджета через налоговый клин.`, onEnter:()=>{ this.startCorpTax = params.corpTax; }, waitFor: ()=> params.corpTax !== this.startCorpTax },
         { target:'#btn-export', allowInteract:false, html:`<b>Экспорт/Импорт</b><br/>Сохраняйте сценарии в JSON и делитесь ими. На этом всё — приятного моделирования!` }
       ];
