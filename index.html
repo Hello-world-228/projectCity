@@ -514,20 +514,20 @@
     return (neg?'-':'') + v.toFixed(0);
   }
 
-  function kp(label, value, unit='', cls=''){
-    return `<div class="kpi ${cls}"><div class="label">${label}</div><div class="value">${value}${unit}</div></div>`
+  function kp(label, value, note='', cls=''){
+    return `<div class="kpi ${cls}"><div class="label">${label}</div><div class="value">${value}</div>${note?`<div class="delta">${note}</div>`:''}</div>`
   }
 
   function renderHUD(){
     const m = state.metrics; if(!m) return;
     hudEl.innerHTML = [
-      kp('Население', fmtMoney(m.population), ''),
-      kp('Вакансии', fmtMoney(m.jobsTotal), ''),
-      kp('Занятость', (m.employed||0).toLocaleString('ru-RU'), ''),
-      kp('Безработица', Math.round((m.unemployment||0)*100)+'%', ''),
-      kp('ВВП (услов.)', fmtMoney(m.GDP), ''),
-      kp('Налоговые доходы', fmtMoney(m.revenue), ''),
-      kp('Бюджет', (m.balance>=0?'':'−')+fmtMoney(Math.abs(m.balance)), m.balance>=0?' (профицит)':' (дефицит)')
+      kp('Население', fmtMoney(m.population), 'жителей'),
+      kp('Вакансии', fmtMoney(m.jobsTotal), 'раб. мест'),
+      kp('Занятость', (m.employed||0).toLocaleString('ru-RU'), 'человек работают'),
+      kp('Безработица', Math.round((m.unemployment||0)*100)+'%', 'доля безработных'),
+      kp('ВВП (услов.)', fmtMoney(m.GDP), 'валовой выпуск'),
+      kp('Налоговые доходы', fmtMoney(m.revenue), 'поступления в бюджет'),
+      kp('Бюджет', (m.balance>=0?'':'−')+fmtMoney(Math.abs(m.balance)), m.balance>=0?'профицит':'дефицит')
     ].join('');
   }
 
@@ -642,6 +642,7 @@
     panel: null,
     steps: [],
     start(){
+      resetGrid();
       this.steps = this.buildSteps();
       this.active = true; this.step = 0; this.panel = document.getElementById('tourPanel');
       this.overlay.classList.remove('hidden');
@@ -661,12 +662,20 @@
     },
     next(){ if(this.step < this.steps.length-1){ this.goto(this.step+1); } else { this.finish(); } },
     prev(){ if(this.step>0) this.goto(this.step-1); },
-    targetEl(){
-      const sel = this.steps[this.step].target; if(!sel) return null; return document.querySelector(sel);
+    targetEls(){
+      const sel = this.steps[this.step].target;
+      if(!sel) return [];
+      const sels = Array.isArray(sel)? sel : [sel];
+      return sels.map(s=>document.querySelector(s)).filter(Boolean);
     },
     position(){
-      const s = this.steps[this.step]; const el = this.targetEl(); if(!el) return;
-      const r = el.getBoundingClientRect(); const pad = 10;
+      const s = this.steps[this.step]; const els = this.targetEls(); if(!els.length) return;
+      let r = els[0].getBoundingClientRect();
+      for(const el of els.slice(1)){
+        const b = el.getBoundingClientRect();
+        r = {top:Math.min(r.top,b.top), left:Math.min(r.left,b.left), right:Math.max(r.right,b.right), bottom:Math.max(r.bottom,b.bottom)};
+      }
+      const pad = 10;
       const top = Math.max(0, r.top - pad), left = Math.max(0, r.left - pad);
       const right = Math.min(window.innerWidth, r.right + pad);
       const bottom = Math.min(window.innerHeight, r.bottom + pad);
@@ -685,7 +694,7 @@
       this.overlay.style.pointerEvents = (s.allowInteract? 'none':'auto');
       // Пульсация цели
       document.querySelectorAll('.pulse').forEach(n=>n.classList.remove('pulse'));
-      el.classList.add('pulse');
+      els.forEach(el=>el.classList.add('pulse'));
     },
     evaluate(){
       const s = this.steps[this.step];
@@ -709,7 +718,7 @@
       const mobilityGood = ()=> (state.metrics.mobility>0);
       return [
         { target:'#catalog', allowInteract:false, html:`<b>Каталог объектов</b><br/>Перетаскивайте объекты на карту: жильё, фермы, заводы, парки, инфраструктура. Каждый тип влияет на занятость, ВВП, экологию и бюджет. Начнём со <em>Жилого дома</em>.` },
-        { target:'#grid', allowInteract:true, html:`<b>Карта‑сетка</b><br/>Каждая клетка — сектор. Важны расстояния: <ul><li>Работа ближе к жилью → выше доступность и занятость.</li><li>Агломерация: схожие фирмы рядом получают бонус к выпуску.</li><li>Загрязнение уменьшается парками ближе к источнику.</li><li>Транспортные узлы снижают «эффективные» расстояния.</li><li>Энергия ограничивает выпуск.</li></ul><b>Действие:</b> перетащите <em>Жилой дом</em> на карту.`, waitFor: hasRes, autoNext:true },
+        { target:['#catalog','#grid'], allowInteract:true, html:`<b>Карта‑сетка</b><br/>Каждая клетка — сектор. Важны расстояния: <ul><li>Работа ближе к жилью → выше доступность и занятость.</li><li>Агломерация: схожие фирмы рядом получают бонус к выпуску.</li><li>Загрязнение уменьшается парками ближе к источнику.</li><li>Транспортные узлы снижают «эффективные» расстояния.</li><li>Энергия ограничивает выпуск.</li></ul><b>Действие:</b> перетащите <em>Жилой дом</em> на карту.`, waitFor: hasRes, autoNext:true },
         { target:'#hud', allowInteract:false, html:`<b>KPI</b><br/>Сверху — моментальные индикаторы: население, занятость, ВВП, налоги и бюджет.` },
         { target:".item[data-type='fact']", allowInteract:true, html:`<b>Промышленность</b><br/>Поставьте <em>Завод</em> и посмотрите, как растут вакансии и загрязнение. Рядом с жильём — выше доступность труда, но и влияние на здоровье.`, waitFor: hasFact, autoNext:true },
         { target:".item[data-type='power']", allowInteract:true, html:`<b>Энергия</b><br/>Добавьте <em>Электростанцию</em>. Показатель «Энергообеспечение» должен приблизиться к 100% — иначе выпуск ограничен.`, waitFor: energyGood, autoNext:true },
