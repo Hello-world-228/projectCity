@@ -1,462 +1,778 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ваш врач — Елена Рашидовна!</title>
-<meta name="description" content="Визитка врача: Руждий Елена Рашидовна — невролог высшей категории. Приём в медцентрах «МедЛаб», Санкт-Петербург." />
-<style>
-  :root{
-    --bg: #f7fbf8;
-    --card:#ffffffcc;          /* стеклянные карточки */
-    --ink:#132015;
-    --muted:#5a6a5d;
-    --brand:#2e7d32;           /* зелёный основной */
-    --accent:#84d4a0;          /* мятный */
-    --wash:#eaf7ee;            /* мягкая заливка */
-    --stroke:#e4efe6;
-    --shadow: 0 20px 50px rgba(46,125,50,.18);
-    --radius:18px;
-    --radius-lg:26px;
-    --speed:.45s;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Экон‑сим: моделирование экономического развития</title>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#131a2b; --panel-2:#0f1526; --accent:#6ee7ff; --accent-2:#a78bfa;
+      --text:#e6ecff; --muted:#94a3b8; --good:#10b981; --warn:#f59e0b; --bad:#ef4444;
+      --grid:#1e293b; --grid-alt:#162036; --cell:#0d1324; --shadow:0 10px 30px rgba(0,0,0,.35);
+      --br:16px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(1200px 600px at 20% -10%, #12203c, #080c18 70%), var(--bg);color:var(--text);font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
+    header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg, rgba(6,10,22,.9), rgba(6,10,22,.6));backdrop-filter: blur(6px);border-bottom:1px solid #1b2340}
+    .wrap{max-width:1400px;margin:0 auto;padding:14px 18px}
+    .title{display:flex;align-items:center;gap:12px}
+    .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg, var(--accent), var(--accent-2));box-shadow:var(--shadow)}
+    h1{font-size:18px;margin:0 8px 0 0}
+    .sub{color:var(--muted)}
 
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; color:var(--ink);
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-    line-height:1.6;
-    background:
-      radial-gradient(1200px 800px at 110% -10%, rgba(132,212,160,.25), transparent 60%),
-      radial-gradient(900px 600px at -10% 10%, rgba(234,247,238,.95), transparent 55%),
-      var(--bg);
-    overflow-x:hidden;
-  }
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .btn{appearance:none;border:1px solid #2a355a;background:linear-gradient(180deg,#1a2241,#141c36);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow)}
+    .btn:hover{filter:brightness(1.08)}
+    .btn.ghost{background:transparent}
 
-  /* ===== Навигация (стекло + магнитная кнопка) ===== */
-  .nav{
-    position:sticky; top:0; z-index:100;
-    backdrop-filter:saturate(160%) blur(10px);
-    background:linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.35));
-    border-bottom:1px solid var(--stroke);
-  }
-  .wrap{max-width:1200px; margin:auto; padding:24px 24px}
-  .nav .wrap{display:flex; gap:18px; align-items:center; padding:14px 24px}
-  .brand{
-    display:flex; gap:12px; align-items:center; font-weight:900; letter-spacing:.2px
-  }
-  .mark{
-    width:18px; height:18px; border-radius:50%;
-    background: conic-gradient(from 0deg, var(--brand) 0 60%, var(--accent) 60% 100%);
-    box-shadow:0 0 0 6px var(--wash);
-  }
-  .links{margin-left:auto; display:flex; flex-wrap:wrap; gap:14px}
-  .links a{color:var(--ink); text-decoration:none; font-weight:600; opacity:.8}
-  .links a:hover{opacity:1}
+    main.app{max-width:1400px;margin:14px auto;display:grid;grid-template-columns:280px 1fr 330px;gap:14px;padding:0 18px 22px}
+    aside.palette, aside.sidebar{background:linear-gradient(180deg, var(--panel), var(--panel-2));border:1px solid #1b2346;border-radius:var(--br);box-shadow:var(--shadow);padding:14px}
 
-  .btn{
-    --bg:var(--brand); --ink:#fff;
-    display:inline-block; text-decoration:none; font-weight:800;
-    background:var(--bg); color:var(--ink);
-    padding:12px 18px; border-radius:999px; box-shadow:var(--shadow);
-    transition: transform .2s ease, filter .2s ease;
-  }
-  .btn:hover{transform:translateY(-1px); filter:saturate(115%)}
-  .btn.ghost{ --bg:#fff; --ink:var(--brand); border:1px solid var(--accent); box-shadow:none }
-  .btn.mag{ position:relative; overflow:hidden }
-  .btn.mag::after{content:""; position:absolute; inset:-40px; background:radial-gradient(120px 120px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.35), transparent 60%); transition:opacity .2s; mix-blend-mode:overlay; pointer-events:none}
+    .palette h2, .sidebar h2{margin:0 0 10px 0;font-size:15px}
+    .catalog{display:grid;grid-template-columns:repeat(2, 1fr);gap:10px}
+    .item{border:1px solid #243053;background:linear-gradient(180deg,#141c2e,#0e162a);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;user-select:none;cursor:grab}
+    .item:active{cursor:grabbing}
+    .item .icon{font-size:22px}
+    .item .name{font-weight:600}
+    .item .note{color:var(--muted);font-size:12px}
 
-  /* ===== Хиро: параллакс + блоб ===== */
-  header{
-    position:relative;
-    padding:60px 0 100px;
-    isolation:isolate;
-  }
-  .hero{
-    display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center;
-  }
-  .kicker{ text-transform:uppercase; letter-spacing:.18em; color:var(--brand); font-weight:900; font-size:12px }
-  h1{font-size:clamp(32px,4.2vw,56px); line-height:1.06; margin:10px 0 14px}
-  .lead{font-size:clamp(16px,1.8vw,20px); color:var(--muted)}
-  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
-  .chip{font-weight:700; font-size:12px; padding:8px 10px; background:var(--wash); color:var(--brand);
-        border-radius:999px; border:1px solid var(--stroke)}
-  .heroCard{
-    position:relative;
-    background:linear-gradient(160deg, #fff 0%, #fff 40%, #f0fbf4 100%);
-    border:1px solid var(--stroke); padding:18px; border-radius:var(--radius-lg);
-    box-shadow:var(--shadow);
-    display:grid; grid-template-columns:110px 1fr; gap:18px; align-items:center;
-    transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(var(--tz,0px));
-    transition: transform .12s ease-out;
-  }
-  .photo{ aspect-ratio:3/4; border-radius:16px; overflow:hidden; background:var(--wash) }
-  .photo img{ width:100%; height:100%; object-fit:cover; display:block; filter:saturate(105%) }
+    section.board{position:relative;background:linear-gradient(180deg, #0b1120, #0a0f1e);border:1px solid #1b2346;border-radius:var(--br);box-shadow:var(--shadow);padding:12px}
+    .hud{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px}
+    .kpi{background:linear-gradient(180deg,#121a33,#0f162b);border:1px solid #1e2a4c;border-radius:12px;padding:10px}
+    .kpi .label{color:var(--muted);font-size:12px}
+    .kpi .value{font-size:18px;font-weight:700}
+    .kpi .delta{font-size:11px}
 
-  /* Фоновые «нейроны» */
-  .sparks{ position:absolute; inset:0; z-index:-1; pointer-events:none; opacity:.55 }
-  .blob{
-    position:absolute; right:-140px; top:-120px; width:520px; height:520px; z-index:-1; filter:blur(12px) saturate(120%);
-    background: radial-gradient(circle at 30% 40%, #dff7e7 0 30%, transparent 45%),
-                radial-gradient(circle at 70% 60%, #bcefcc 0 35%, transparent 55%),
-                radial-gradient(circle at 50% 50%, #9adfb2 0 25%, transparent 50%);
-    border-radius:40% 60% 65% 35% / 40% 50% 50% 60%;
-    animation:blob 18s ease-in-out infinite alternate;
-  }
-  @keyframes blob{
-    0%{ border-radius:40% 60% 65% 35% / 40% 50% 50% 60%; transform:translate3d(0,0,0) rotate(0.01deg)}
-    100%{ border-radius:60% 40% 40% 60% / 55% 45% 55% 45%; transform:translate3d(-40px,10px,0) rotate(3deg)}
-  }
+    .grid{--cols:20;--rows:12;display:grid;grid-template-columns:repeat(var(--cols),1fr);grid-template-rows:repeat(var(--rows),36px);gap:2px;background:#0b1120;border-radius:10px;border:1px solid #1c2748;padding:6px}
+    .cell{position:relative;display:flex;align-items:center;justify-content:center;background:var(--cell);border:1px dashed #1b2547;border-radius:6px;min-width:0}
+    .cell[data-odd="1"]{background:#0e1529}
+    .cell .placed{position:absolute;inset:0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;pointer-events:none}
+    .cell .placed::after{content:attr(data-name);position:absolute;bottom:2px;left:4px;right:4px;color:#aab4d4;font-size:10px;text-align:center;opacity:.6}
 
-  /* ===== Секции ===== */
-  section{padding:72px 24px; scroll-margin-top:90px; position:relative}
-  section:nth-child(even){ background:#fff }
-  .title{font-size:28px; margin:0 0 12px}
-  .sub{color:var(--muted); margin:-4px 0 22px}
+    .legend{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+    .pill{border:1px solid #223056;background:#0f1831;color:#b7c0dd;border-radius:999px;padding:6px 10px;font-size:12px}
 
-  /* Разделители волн */
-  .wave{ position:absolute; left:0; right:0; height:80px; bottom:-40px; pointer-events:none; }
-  .wave path{ fill: var(--wash) }
+    .sidebar section{margin-bottom:14px}
+    .meters{display:grid;grid-template-columns:1fr;gap:9px}
+    .meter{background:linear-gradient(180deg,#111a32,#0f162b);border:1px solid #1b274a;border-radius:12px;padding:8px}
+    .meter .top{display:flex;justify-content:space-between;gap:8px}
+    .meter .bar{height:8px;background:#0b1229;border-radius:6px;overflow:hidden;border:1px solid #1a2447;margin-top:6px}
+    .meter .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--bad),var(--warn),var(--good))}
+    .row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin:6px 0}
+    input[type=range]{width:100%}
+    .small{color:var(--muted);font-size:12px}
 
-  /* Карточки */
-  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px }
-  .card{
-    background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius); padding:20px;
-    box-shadow:0 10px 30px rgba(0,0,0,.04);
-    backdrop-filter: blur(8px);
-    transform: translateY(12px); opacity:0; transition: transform var(--speed) ease, opacity var(--speed) ease;
-  }
-  .reveal-in{ transform: translateY(0); opacity:1 }
+    .toast{position:fixed;right:16px;bottom:16px;background:#0e162c;border:1px solid #1d2748;border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.2s}
+    .toast.show{opacity:1;transform:translateY(0)}
 
-  /* Таймлайн */
-  .tl{position:relative; padding-left:22px}
-  .tl::before{content:""; position:absolute; left:6px; top:0; bottom:0; width:2px; background:linear-gradient(var(--brand), transparent)}
-  .tl .item{position:relative; padding:10px 0 10px 10px}
-  .tl .item::before{content:""; position:absolute; left:-2px; top:16px; width:10px; height:10px; background:var(--brand); border-radius:50%; box-shadow:0 0 0 6px var(--wash)}
+    .help{color:#a9b5d8;font-size:12px}
 
-  /* Цитаты */
-  .quote{ position:relative; border:1px solid var(--stroke); border-radius:var(--radius); padding:18px;
-          background: radial-gradient(70% 140% at 0% 0%, var(--wash), #fff 60%) }
-
-  /* Контакты */
-  .place{ display:flex; gap:12px; align-items:flex-start }
-  .place svg{ flex:0 0 20px }
-
-  /* Футер */
-  footer{ padding:46px 24px; background:linear-gradient(180deg, #fff, #f2fbf5); border-top:1px solid var(--stroke); color:var(--muted) }
-
-  /* Адаптив */
-  @media (max-width:980px){
-    .hero{ grid-template-columns:1fr }
-    .heroCard{ grid-template-columns:92px 1fr }
-    .blob{ right:-180px; top:-160px; width:520px; height:520px }
-  }
-</style>
+    @media (max-width: 1200px){
+      main.app{grid-template-columns:260px 1fr}
+      aside.sidebar{grid-column:1/-1}
+      .hud{grid-template-columns:repeat(3,1fr)}
+    }
+      /* === Guided Tour === */
+    .tour{position:fixed;inset:0;z-index:10000}
+    .tour.hidden{display:none}
+    .tour .shade{position:fixed;background:rgba(2,8,23,.62);pointer-events:auto}
+    .tour .panel{position:fixed;max-width:460px;background:linear-gradient(180deg,#121a33,#0f162b);border:1px solid #1e2a4c;border-radius:16px;box-shadow:var(--shadow);padding:12px 14px;color:var(--text)}
+    .tour .panel .content{font-size:14px;line-height:1.4}
+    .tour .panel .controls{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+    .tour .panel .btn[disabled]{opacity:.5;cursor:not-allowed}
+    .tour .pulse{box-shadow:0 0 0 2px rgba(110,231,255,.9), 0 0 0 8px rgba(110,231,255,.15);border-radius:10px}
+  </style>
 </head>
 <body>
-  <!-- Навигация -->
-  <nav class="nav">
-    <div class="wrap">
-      <div class="brand"><span class="mark"></span><span>Ваш врач — Елена&nbsp;Рашидовна!</span></div>
-      <div class="links">
-        <a href="#about">О враче</a>
-        <a href="#skills">Навыки</a>
-        <a href="#services">Процедуры</a>
-        <a href="#education">Образование</a>
-        <a href="#articles">Статьи</a>
-        <a href="#contacts">Контакты</a>
-      </div>
-      <a class="btn mag" href="https://medlabspb.ru/o-nas/nashi-specialisty/neurologist-ruzhdij/" target="_blank" rel="noopener">Записаться</a>
-    </div>
-  </nav>
-
-  <!-- Хиро -->
   <header>
-    <canvas class="sparks" id="sparks" width="1600" height="800" aria-hidden="true"></canvas>
-    <div class="blob" aria-hidden="true"></div>
-    <div class="wrap hero">
-      <div>
-        <div class="kicker">Санкт-Петербург · МедЛаб</div>
-        <h1>Руждий Елена Рашидовна</h1>
-        <p class="lead">Невролог, высшая категория. Стаж&nbsp;38&nbsp;лет. Стоимость приёма — <b>от&nbsp;2&nbsp;800&nbsp;₽</b>.</p>
-        <div class="chips">
-          <span class="chip">Невролог</span>
-          <span class="chip">Высшая категория</span>
-          <span class="chip">ЦНС и ПНС</span>
-        </div>
-        <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap">
-          <a class="btn mag" href="#contacts">Позвонить</a>
-          <a class="btn ghost" href="#services">Посмотреть процедуры</a>
-        </div>
+    <div class="wrap">
+      <div class="title">
+        <div class="logo"></div>
+        <h1>Экон‑сим: интерактивная модель развития региона</h1>
+        <div class="sub">HTML/CSS/JS — перетаскивайте объекты на карту и смотрите, как меняются показатели</div>
       </div>
-
-      <div class="heroCard" id="tilt">
-        <div class="photo">
-          <img alt="Фото — Руждий Елена Рашидовна" src="https://medlabspb.ru/thumb/540x720xCUT/upload/scrud/abc/n5o4ulm33a7vukr0pf6zza3qy9e53m1b.JPG" />
-        </div>
-        <div>
-          <div class="kicker" style="opacity:.9">Индивидуальный подход</div>
-          <p style="margin:6px 0 10px">Диагностика и лечение заболеваний центральной и периферической нервной системы: сосудистого, дегенеративного, воспалительного, травматического генеза.</p>
-          <div class="chips">
-            <span class="chip">Интерпретация ЭЭГ/ЭНМГ/МРТ/КТ</span>
-            <span class="chip">Медикаментозные блокады</span>
-            <span class="chip">Кинезиотейпирование</span>
-          </div>
-        </div>
+      <div class="toolbar">
+        <button class="btn" id="btn-export">Экспорт сценария</button>
+        <button class="btn" id="btn-import">Импорт сценария</button>
+        <button class="btn" id="btn-guide">Гайд</button>
+        <button class="btn ghost" id="btn-reset">Сбросить карту</button>
+        <span class="help">Подсказка: ПКМ по клетке — удалить объект. Потяните из каталога и бросьте на клетку.</span>
       </div>
     </div>
-
-    <!-- волна -->
-    <svg class="wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M0,90 C240,140 480,60 720,90 C960,120 1200,140 1440,90 L1440,120 L0,120 Z"></path>
-    </svg>
   </header>
 
-  <!-- О враче -->
-  <section id="about">
-    <div class="wrap">
-      <h2 class="title">О враче</h2>
-      <p class="sub">Коммуникабельный и внимательный специалист. Ведёт приём в медцентрах «МедЛаб», Санкт-Петербург.</p>
-      <div class="grid">
-        <div class="card"><b>Категория:</b> высшая.</div>
-        <div class="card"><b>Стаж:</b> 38 лет.</div>
-        <div class="card"><b>Специализация:</b> диагностика и лечение заболеваний ЦНС и ПНС; фармакопунктура; кинезиотейпирование; медикаментозные блокады; интерпретация результатов инструментальных исследований.</div>
-        <div class="card">
-          <b>Где ведёт приём</b><br><br>
-          <div class="place">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.7 2 6 4.7 6 8c0 4.2 6 12 6 12s6-7.8 6-12c0-3.3-2.7-6-6-6zm0 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="var(--brand)"/></svg>
-            <div><b>МедЛаб Озерки</b> — пр. Энгельса, 126к1</div>
-          </div>
-          <div class="place" style="margin-top:10px">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.7 2 6 4.7 6 8c0 4.2 6 12 6 12s6-7.8 6-12c0-3.3-2.7-6-6-6zm0 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="var(--brand)"/></svg>
-            <div><b>МедЛаб Василеостровский</b> — 10 линия В.О., 15</div>
-          </div>
-          <div class="place" style="margin-top:10px">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.7 2 6 4.7 6 8c0 4.2 6 12 6 12s6-7.8 6-12c0-3.3-2.7-6-6-6zm0 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="var(--brand)"/></svg>
-            <div><b>МедЛаб Парк Победы</b> — ул. Фрунзе, 1</div>
-          </div>
-          <div class="place" style="margin-top:10px">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.7 2 6 4.7 6 8c0 4.2 6 12 6 12s6-7.8 6-12c0-3.3-2.7-6-6-6zm0 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="var(--brand)"/></svg>
-            <div><b>МедЛаб Рыбацкое</b> — ул. Караваевская, 26</div>
-          </div>
-        </div>
+  <main class="app">
+    <aside class="palette">
+      <h2>Каталог объектов</h2>
+      <div class="catalog" id="catalog"></div>
+      <div class="legend">
+        <span class="pill">📦 Производство = Кобб‑Дуглас + агломерация</span>
+        <span class="pill">🧭 Доступность = гравитационная модель</span>
+        <span class="pill">🌳 Экология = выбросы − зелёные зоны</span>
+      </div>
+    </aside>
+
+    <section class="board">
+      <div class="hud" id="hud">
+        <!-- KPI карточки будут заполнены JS -->
+      </div>
+      <div class="grid" id="grid" style="--cols:20;--rows:12"></div>
+    </section>
+
+    <aside class="sidebar">
+      <section>
+        <h2>Ключевые индикаторы</h2>
+        <div class="meters" id="meters"></div>
+      </section>
+      <section>
+        <h2>Параметры модели</h2>
+        <div class="row"><label>Налог на прибыль: <b id="corpTaxLabel">20%</b></label><input type="range" id="corpTax" min="0" max="40" step="1" value="20"></div>
+        <div class="row"><label>Подоходный налог: <b id="incTaxLabel">15%</b></label><input type="range" id="incTax" min="0" max="40" step="1" value="15"></div>
+        <div class="row"><label>Сила агломерации: <b id="agglLabel">0.20</b></label><input type="range" id="aggl" min="0" max="50" step="1" value="20"></div>
+        <div class="row"><label>Затухание расстояния: <b id="decayLabel">0.15</b></label><input type="range" id="decay" min="5" max="50" step="1" value="15"></div>
+        <div class="row"><label>Стоимость услуг на чел.: <b id="svcLabel">$2.0k</b></label><input type="range" id="svc" min="1" max="6" step="0.1" value="2"></div>
+        <div class="small">Теория под капотом: Кобб‑Дуглас (производство), новая экономическая география (агломерация), гравитационная доступность, экстерналии загрязнений и природного капитала, упрощённая AMM (жильё/работа).</div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Guided Tour Overlay -->
+  <div class="tour hidden" id="tour">
+    <div class="shade top"></div>
+    <div class="shade left"></div>
+    <div class="shade right"></div>
+    <div class="shade bottom"></div>
+    <div class="panel" id="tourPanel">
+      <div class="content" id="tourContent"></div>
+      <div class="controls">
+        <button class="btn ghost" id="tourPrev">Назад</button>
+        <button class="btn ghost" id="tourSkip">Пропустить</button>
+        <button class="btn" id="tourNext">Далее</button>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- Навыки -->
-  <section id="skills">
-    <div class="wrap">
-      <h2 class="title">Профессиональные навыки</h2>
-      <p class="sub">Методы и компетенции, применяемые в работе.</p>
-      <div class="grid">
-        <div class="card"><b>Фармакопунктура</b><br><span class="muted">Введение препаратов в рефлексогенные зоны.</span></div>
-        <div class="card"><b>Медикаментозные блокады</b><br><span class="muted">Параартикулярные, паравертебральные, периневральные.</span></div>
-        <div class="card"><b>Интерпретация исследований</b><br><span class="muted">Рентген, КТ, МРТ, ЭЭГ, ЭНМГ.</span></div>
-        <div class="card"><b>Диагностика и лечение</b><br><span class="muted">Заболевания ЦНС и ПНС различного генеза.</span></div>
-        <div class="card"><b>Кинезиотейпирование</b><br><span class="muted">Поддержка и реабилитация без ограничения движений.</span></div>
-      </div>
-    </div>
-  </section>
+  <div class="toast" id="toast"></div>
 
-  <!-- Процедуры -->
-  <section id="services">
-    <div class="wrap">
-      <h2 class="title">Проводимые процедуры</h2>
-      <p class="sub">Актуальные позиции и стоимость уточняйте на сайте «МедЛаб».</p>
-      <div class="grid">
-        <div class="card"><b>Фармакопунктура гомеопатическими препаратами</b><br>3&nbsp;500&nbsp;₽</div>
-        <div class="card"><b>Кинезиотейпинг</b> (1 категория сложности, без стоимости тейпа)<br>350&nbsp;₽</div>
-        <div class="card"><b>Магнитотерапия «Мастер МСТ-01»</b><br>350&nbsp;₽</div>
-        <div class="card"><b>Паравертебральное введение</b> (без стоимости лекарственного вещества)<br>1&nbsp;650&nbsp;₽</div>
-        <div class="card"><b>Параартикулярное введение</b> (без стоимости лекарственного вещества)<br>1&nbsp;650&nbsp;₽</div>
-      </div>
-      <div style="margin-top:16px"><a class="btn mag" href="https://medlabspb.ru/o-nas/nashi-specialisty/neurologist-ruzhdij/" target="_blank" rel="noopener">Уточнить расценки и записаться</a></div>
-    </div>
-  </section>
+  <script>
+  // ======================
+  // 1) Справочник объектов
+  // ======================
+  // Базовые параметры вдохновлены экономическими теориями:
+  // - Выпуск производств через A * L^α * K^β, приближённо — baseOutput * агломерация * доступность * энергообеспечение.
+  // - Агломерация: ln(1 + соседние похожие) * coeff (см. Fujita, Krugman, Venables).
+  // - Доступность: гравитационная модель 1/(1 + d*λ), транспортные узлы снижают эффективное расстояние.
+  // - Экология: выбросы от источников − абсорбция зелёных зон, влияет на здоровье/производительность.
 
-  <!-- Образование -->
-  <section id="education">
-    <div class="wrap">
-      <h2 class="title">Образование и повышение квалификации</h2>
-      <div class="grid">
-        <div class="card tl">
-          <div class="item"><b>1987</b> — ПСПбГМУ им. И.&nbsp;П.&nbsp;Павлова, «Лечебное дело».</div>
-          <div class="item"><b>1991</b> — Ординатура, ПСПбГМУ им. И.&nbsp;П.&nbsp;Павлова, «Неврология».</div>
-          <div class="item"><b>1999</b> — СПбГМУ им. акад. И.&nbsp;П.&nbsp;Павлова, усовершенствование.</div>
-          <div class="item"><b>2005</b> — СПбГМУ им. акад. И.&nbsp;П.&nbsp;Павлова, усовершенствование.</div>
-          <div class="item"><b>2010</b> — I&nbsp;СПбГМУ им. акад. И.&nbsp;П.&nbsp;Павлова, усовершенствование.</div>
-          <div class="item"><b>2015</b> — I&nbsp;СПбГМУ им. акад. И.&nbsp;П.&nbsp;Павлова, усовершенствование.</div>
-        </div>
-        <div class="card">
-          <b>Квалификационная категория</b>
-          <ul style="margin:10px 0 0 18px">
-            <li>С&nbsp;1996&nbsp;г. — высшая квалификационная категория («Неврология»).</li>
-            <li>2011&nbsp;г. — подтверждена высшая категория.</li>
-          </ul>
-          <div class="chips" style="margin-top:12px"><span class="chip">Стоимость приёма: от 2&nbsp;800&nbsp;₽</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
+  const CATALOG = [
+    { id:'res', name:'Жилой дом', icon:'🏠', kind:'res', housing:140, amenity:0.6, energy:1, pollution:0.02, cost:80 },
+    { id:'comm', name:'Бизнес‑центр', icon:'🏬', kind:'prod', jobs:60, base:90, energy:2, pollution:0.05, cost:120 },
+    { id:'farm', name:'Ферма', icon:'🌾', kind:'prod', jobs:35, base:70, energy:1, pollution:0.08, cost:90 },
+    { id:'fact', name:'Завод', icon:'🏭', kind:'prod', jobs:90, base:160, energy:4, pollution:0.35, cost:200 },
+    { id:'power', name:'Электростанция', icon:'⚡', kind:'infra', power:420, energy:0, pollution:0.40, cost:220 },
+    { id:'park', name:'Парк', icon:'🌳', kind:'green', absorb:0.28, amenity:0.5, energy:0, pollution:-0.05, cost:60 },
+    { id:'school', name:'Школа', icon:'🏫', kind:'svc', edu:0.5, energy:1, pollution:0.03, cost:100 },
+    { id:'hosp', name:'Больница', icon:'🏥', kind:'svc', health:0.6, energy:2, pollution:0.04, cost:140 },
+    { id:'hub', name:'Транспортный узел', icon:'🚉', kind:'infra', transport:1, energy:0, pollution:0.02, cost:110 },
+    { id:'uni', name:'Университет', icon:'🎓', kind:'svc', edu:0.9, amenity:0.2, energy:2, pollution:0.05, cost:180 }
+  ];
 
-  <!-- Статьи -->
-  <section id="articles">
-    <div class="wrap">
-      <h2 class="title">Статьи врача</h2>
-      <div class="grid">
-        <a class="card" href="https://medlabspb.ru/pacientam/articles-about-health/complaining-about/insomnia/" target="_blank" rel="noopener">
-          <b>Нарушения сна, Бессонница</b><br><span class="muted">7 марта 2023</span>
-        </a>
-        <a class="card" href="https://medlabspb.ru/pacientam/articles-about-health/methods-of-diagnostics-and-treatment/kinesiotaping/" target="_blank" rel="noopener">
-          <b>Кинезиотейпинг (кинезиотейпирование)</b><br><span class="muted">7 марта 2023</span>
-        </a>
-        <a class="card" href="https://medlabspb.ru/pacientam/articles-about-health/methods-of-treatment-and-prophylaxis/insult/" target="_blank" rel="noopener">
-          <b>Инсульт и его профилактика</b><br><span class="muted">27 сентября 2023</span>
-        </a>
-        <a class="card" href="https://medlabspb.ru/pacientam/articles-about-health/complaining-about/migraine/" target="_blank" rel="noopener">
-          <b>Мигрень</b><br><span class="muted">7 марта 2023</span>
-        </a>
-      </div>
-    </div>
-  </section>
+  // Цвета для теплокарт (опционально можно расширить)
+  const KIND_COLOR = { res:'#6ee7ff', prod:'#a78bfa', infra:'#f59e0b', green:'#22c55e', svc:'#60a5fa' };
 
-  <!-- Контакты -->
-  <section id="contacts">
-    <div class="wrap">
-      <h2 class="title">Контакты и запись</h2>
-      <div class="grid">
-        <div class="card">
-          <div class="kicker" style="margin-bottom:8px">Колл-центр «МедЛаб»</div>
-          <div style="font-size:24px; font-weight:900; color:var(--brand)">
-            <a href="tel:+78126002210" style="color:inherit; text-decoration:none">+7 (812) 600-22-10</a>
-          </div>
-          <div class="sub">Пн–Пт: 8:00–21:00 · Сб–Вс: 8:00–20:00</div>
-          <div style="display:flex; gap:10px; margin-top:10px">
-            <a class="btn mag" href="https://medlabspb.ru/o-nas/nashi-specialisty/neurologist-ruzhdij/" target="_blank" rel="noopener">Записаться онлайн</a>
-            <a class="btn ghost" href="#about">О враче</a>
-          </div>
-        </div>
-        <div class="card">
-          <b>Адрес ближайшего центра:</b>
-          <div class="place" style="margin-top:10px">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.7 2 6 4.7 6 8c0 4.2 6 12 6 12s6-7.8 6-12c0-3.3-2.7-6-6-6zm0 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="var(--brand)"/></svg>
-            <div>Россия, Санкт-Петербург, пр. Энгельса, 126к1</div>
-          </div>
-          <p class="sub" style="margin-top:8px">Другие адреса — в разделе «О враче».</p>
-        </div>
-      </div>
-      <p class="sub" style="margin-top:14px">Есть противопоказания. Проконсультируйтесь со специалистом.</p>
-    </div>
-  </section>
+  // ======================
+  // 2) Состояние модели
+  // ======================
+  const GRID_COLS = 20, GRID_ROWS = 12;
+  const gridEl = document.getElementById('grid');
+  const catalogEl = document.getElementById('catalog');
+  const hudEl = document.getElementById('hud');
+  const metersEl = document.getElementById('meters');
+  const toastEl = document.getElementById('toast');
 
-  <footer>
-    <div class="wrap" style="display:flex; justify-content:space-between; gap:16px; align-items:center; flex-wrap:wrap">
-      <div>© Руждий Елена Рашидовна · Невролог · Санкт-Петербург</div>
-      <div><a href="https://medlabspb.ru/o-nas/nashi-specialisty/neurologist-ruzhdij/" target="_blank" rel="noopener">Страница врача в «МедЛаб»</a></div>
-    </div>
-  </footer>
-
-<script>
-/* ========= 1) Магнитные кнопки (реакция на курсор) ========= */
-document.querySelectorAll('.btn.mag').forEach(btn=>{
-  const rect = ()=>btn.getBoundingClientRect();
-  btn.addEventListener('mousemove', e=>{
-    const r=rect();
-    const x=e.clientX - r.left, y=e.clientY - r.top;
-    btn.style.setProperty('--mx', (x/r.width*100)+'%');
-    btn.style.setProperty('--my', (y/r.height*100)+'%');
-    const dx = (x - r.width/2)/12, dy = (y - r.height/2)/12;
-    btn.style.transform = `translate(${dx}px, ${dy}px)`;
-  });
-  btn.addEventListener('mouseleave', ()=>{ btn.style.transform='translate(0,0)' });
-});
-
-/* ========= 2) 3D-tilt карточки в хиро ========= */
-(function(){
-  const card = document.getElementById('tilt');
-  const max = 10; // градусов
-  let t;
-  const set = (rx,ry)=>{
-    card.style.setProperty('--rx', rx+'deg');
-    card.style.setProperty('--ry', ry+'deg');
-    card.style.setProperty('--tz', '10px');
+  const params = {
+    corpTax: 0.20, // налог на прибыль
+    incTax: 0.15,  // НДФЛ
+    aggl: 0.20,    // коэффициент агломерации
+    decay: 0.15,   // затухание расстояния для доступности
+    svcCost: 2000  // $/чел. на услуги
   };
-  card.addEventListener('mousemove', e=>{
-    const r = card.getBoundingClientRect();
-    const px = (e.clientX - r.left)/r.width - .5;
-    const py = (e.clientY - r.top)/r.height - .5;
-    const ry = px * max;
-    const rx = -py * max;
-    cancelAnimationFrame(t);
-    t = requestAnimationFrame(()=>set(rx,ry));
-  });
-  ['mouseleave','blur'].forEach(ev=>card.addEventListener(ev, ()=>set(0,0)));
-})();
 
-/* ========= 3) Частицы-нейроны (canvas) ========= */
-(function(){
-  const c = document.getElementById('sparks');
-  const ctx = c.getContext('2d');
-  const DPR = Math.max(1, window.devicePixelRatio || 1);
-  function resize(){
-    c.width = innerWidth * DPR;
-    c.height = Math.min(800, innerHeight*0.6) * DPR;
+  const state = {
+    cells: Array.from({length: GRID_ROWS}, () => Array.from({length: GRID_COLS}, () => null)),
+    positions: {}, // id -> [{r,c}]
+    metrics: {}
+  };
+
+  function notify(msg){
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    setTimeout(()=>toastEl.classList.remove('show'), 1500);
   }
-  resize(); addEventListener('resize', resize);
 
-  const nodes = Array.from({length: 42}, (_,i)=>({
-    x: Math.random()*c.width, y: Math.random()*c.height,
-    vx: (Math.random()*2-1)*.25*DPR, vy:(Math.random()*2-1)*.25*DPR,
-    r: (Math.random()*2+1)*DPR
-  }));
+  // ======================
+  // 3) Рендер каталога и сетки
+  // ======================
+  function renderCatalog(){
+    catalogEl.innerHTML = '';
+    for(const o of CATALOG){
+      const card = document.createElement('div');
+      card.className = 'item';
+      card.draggable = true;
+      card.dataset.type = o.id;
+      card.innerHTML = `<div class="icon">${o.icon}</div><div class="name">${o.name}</div><div class="note">${o.kind}</div>`;
+      card.addEventListener('dragstart', e=>{
+        e.dataTransfer.setData('text/plain', o.id);
+      });
+      catalogEl.appendChild(card);
+    }
+  }
 
-  function step(){
-    ctx.clearRect(0,0,c.width,c.height);
-    // линии
-    for(let i=0;i<nodes.length;i++){
-      for(let j=i+1;j<nodes.length;j++){
-        const a=nodes[i], b=nodes[j];
-        const dx=a.x-b.x, dy=a.y-b.y; const d=Math.hypot(dx,dy);
-        if(d<160*DPR){
-          ctx.globalAlpha = (1 - d/(160*DPR)) * .25;
-          ctx.strokeStyle = '#2e7d32';
-          ctx.lineWidth = DPR;
-          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-        }
+  function renderGrid(){
+    gridEl.innerHTML = '';
+    for(let r=0;r<GRID_ROWS;r++){
+      for(let c=0;c<GRID_COLS;c++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.r=r; cell.dataset.c=c;
+        cell.dataset.odd = (r+c)%2;
+        cell.addEventListener('dragover', e=>{ e.preventDefault(); });
+        cell.addEventListener('drop', onDrop);
+        cell.addEventListener('contextmenu', (e)=>{ e.preventDefault(); removeAt(r,c); });
+        gridEl.appendChild(cell);
       }
     }
-    // точки
-    ctx.globalAlpha=1;
-    nodes.forEach(n=>{
-      ctx.beginPath(); ctx.fillStyle='#84d4a0';
-      ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
-      n.x+=n.vx; n.y+=n.vy;
-      if(n.x<0||n.x>c.width) n.vx*=-1;
-      if(n.y<0||n.y>c.height) n.vy*=-1;
-    });
-    requestAnimationFrame(step);
   }
-  step();
-})();
 
-/* ========= 4) Reveal-анимации секций ========= */
-const io = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){ e.target.classList.add('reveal-in'); io.unobserve(e.target); }
-  });
-},{threshold:.12});
-document.querySelectorAll('.card').forEach(el=>io.observe(el));
+  function onDrop(e){
+    e.preventDefault();
+    const type = e.dataTransfer.getData('text/plain');
+    const r = +e.currentTarget.dataset.r, c = +e.currentTarget.dataset.c;
+    placeAt(type, r, c);
+  }
 
-/* ========= 5) Плавный скролл к якорям ========= */
-document.querySelectorAll('a[href^="#"]').forEach(a=>{
-  a.addEventListener('click', (e)=>{
-    const id = a.getAttribute('href').slice(1);
-    const el = document.getElementById(id);
-    if(el){ e.preventDefault(); el.scrollIntoView({behavior:'smooth', block:'start'}); }
-  });
-});
-</script>
+  function placeAt(type, r, c){
+    const existing = state.cells[r][c];
+    if(existing && existing.id === type){ notify('Уже стоит этот объект'); return; }
+    const info = CATALOG.find(x=>x.id===type);
+    if(!info) return;
+    state.cells[r][c] = { id:type };
+    if(!state.positions[type]) state.positions[type] = [];
+    // удалить старую запись для ячейки, если была
+    if(existing && state.positions[existing.id]){
+      state.positions[existing.id] = state.positions[existing.id].filter(p=>!(p.r===r && p.c===c));
+    }
+    // записать новую
+    state.positions[type].push({r,c});
+    drawCell(r,c);
+    recalcAll();
+  }
+
+  function removeAt(r,c){
+    const existing = state.cells[r][c];
+    if(!existing) return;
+    state.cells[r][c] = null;
+    if(state.positions[existing.id]){
+      state.positions[existing.id] = state.positions[existing.id].filter(p=>!(p.r===r && p.c===c));
+    }
+    drawCell(r,c);
+    recalcAll();
+  }
+
+  function drawCell(r,c){
+    const idx = r*GRID_COLS + c;
+    const cell = gridEl.children[idx];
+    cell.innerHTML = '';
+    const obj = state.cells[r][c];
+    if(!obj) return;
+    const def = CATALOG.find(x=>x.id===obj.id);
+    const d = document.createElement('div');
+    d.className='placed';
+    d.dataset.name = def.name;
+    d.title = def.name;
+    d.style.outline = `1px solid ${KIND_COLOR[def.kind] || '#4b5563'}`;
+    d.style.background = 'linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.2))';
+    d.textContent = def.icon;
+    cell.appendChild(d);
+  }
+
+  // ======================
+  // 4) Метрики и теория
+  // ======================
+
+  function dist(a,b){ // евклидово расстояние на сетке
+    return Math.hypot(a.r - b.r, a.c - b.c);
+  }
+
+  function nearestDistance(points, target){
+    if(!points || points.length===0) return Infinity;
+    let best = Infinity;
+    for(const p of points){ const d = dist(p, target); if(d<best) best=d; }
+    return best;
+  }
+
+  function countWithin(points, target, radius){
+    if(!points) return 0; let k=0; for(const p of points){ if(dist(p,target)<=radius) k++; } return k;
+  }
+
+  function sum(arr){return arr.reduce((a,b)=>a+b,0)}
+  function clamp(v,a,b){return Math.max(a, Math.min(b, v))}
+
+  function vectorOfPositions(type){ return state.positions[type] || []; }
+
+  // Вычисление экологии и интегрального индекса загрязнений заранее,
+  // чтобы избежать обращения к ещё не инициализированным переменным
+  function computeEco(resPts, jobPts){
+    // Список всех источников загрязнений (prod/infra/svc) с учётом масштаба по типу
+    const polluterIds = Object.keys(state.positions).filter(id=>{
+      const k = getDef(id).kind; return k==='prod' || k==='infra' || k==='svc';
+    });
+    const polluters = [];
+    for(const id of polluterIds){
+      const def = getDef(id); const pts = state.positions[id]||[];
+      for(const p of pts){
+        const scaleByKind = def.kind==='prod'?1.0:(def.kind==='infra'?0.5:0.3);
+        const e = Math.max(0, def.pollution||0) * scaleByKind; // эмиссия узла
+        polluters.push({p, e});
+      }
+    }
+    const emissions = polluters.reduce((a,b)=>a+b.e,0);
+
+    // Абсорбция парков: эффект уменьшается с расстоянием
+    const parks = vectorOfPositions('park');
+    let absorbEff = 0; const lambda = 0.6; // затухание
+    const parkAbsBase = getDef('park').absorb||0;
+    for(const pk of parks){
+      for(const pol of polluters){
+        const d = dist(pk, pol.p); const w = 1/(1 + d*lambda); // 0..1
+        absorbEff += parkAbsBase * w;
+      }
+    }
+
+    const net = Math.max(0, emissions - absorbEff);
+    // Сатурирующее преобразование в индекс 0..1 (чем больше, тем грязнее)
+    const pollutionIdx = clamp(1 - Math.exp(-net/2), 0, 1.2);
+    return { emissions, abs: absorbEff, netPollution: net, pollutionIdx };
+  }
+
+  function availabilityFactor(toPoints, fromPoint){
+    // Гравитационная доступность: 1 / (1 + d*decay) ; транспортный узел снижает эффективное расстояние поблизости
+    let d0 = nearestDistance(toPoints, fromPoint);
+    const hubs = vectorOfPositions('hub');
+    if(hubs.length){
+      const dh = nearestDistance(hubs, fromPoint);
+      if(dh<4) d0 *= 0.6; // рядом с узлом — эффективная близость
+      else if(dh<7) d0 *= 0.8;
+    }
+    const val = 1 / (1 + d0 * params.decay);
+    return val; // 0..1
+  }
+
+  function agglomerationBoost(points, pt){
+    // ln(1 + N_r) * coeff, r=3 клетки
+    const N = Math.max(0, countWithin(points, pt, 3) - 1);
+    return Math.log(1 + N) * params.aggl;
+  }
+
+  function recalcAll(){
+    const pos = state.positions; // короткая ссылка
+
+    // 4.1. Вместимости/потребности
+    const housingCap = (vectorOfPositions('res').length) * getDef('res').housing;
+    const jobsComm = (vectorOfPositions('comm').length) * getDef('comm').jobs;
+    const jobsFarm = (vectorOfPositions('farm').length) * getDef('farm').jobs;
+    const jobsFact = (vectorOfPositions('fact').length) * getDef('fact').jobs;
+    const jobsTotal = jobsComm + jobsFarm + jobsFact;
+
+    const powerSupply = sum(vectorOfPositions('power').map(()=>getDef('power').power));
+    const energyDemand = sum(Object.keys(pos).flatMap(id => pos[id].map(()=> getDef(id).energy || 0)));
+
+    // 4.2. Доступности для жителей (работа, больницы, школы, парки)
+    const resPts = vectorOfPositions('res');
+    const jobPts = [...vectorOfPositions('comm'), ...vectorOfPositions('farm'), ...vectorOfPositions('fact')];
+    const hospPts = vectorOfPositions('hosp');
+    const schoolPts = [...vectorOfPositions('school'), ...vectorOfPositions('uni')];
+    const parkPts = vectorOfPositions('park');
+
+    // Экология заранее (во избежание ошибки TDZ при расчёте производства)
+    const eco = computeEco(resPts, jobPts);
+    function globalPollution(){ return eco.pollutionIdx; }
+
+    // Индекс мобильности: близость к транспортным узлам
+    const hubPts = vectorOfPositions('hub');
+    let mobility = 0; for(const r of resPts){ mobility += availabilityFactor(hubPts, r); }
+    const nRes = Math.max(1, resPts.length);
+    mobility /= nRes;
+
+    let accessJobs=0, accessHosp=0, accessEdu=0, amenityPark=0, pollutionExposure=0;
+    for(const r of resPts){
+      accessJobs += availabilityFactor(jobPts, r);
+      accessHosp += availabilityFactor(hospPts, r);
+      accessEdu  += availabilityFactor(schoolPts, r);
+      amenityPark += availabilityFactor(parkPts, r) * 0.7; // парки сильнее влияют на соседство
+      // Экспозиция загрязнений — ближе к заводам/ЭС хуже
+      const pollPts = [...vectorOfPositions('fact'), ...vectorOfPositions('power')];
+      const dPoll = nearestDistance(pollPts, r);
+      pollutionExposure += 1 / (1 + dPoll); // 0..1 выше — хуже
+    }
+    accessJobs/=nRes; accessHosp/=nRes; accessEdu/=nRes; amenityPark/=nRes; pollutionExposure/=nRes; // использует nRes, объявленный выше
+
+    // 4.3. Производство отраслей
+    const energyFactor = energyDemand>0 ? clamp(powerSupply/energyDemand, 0, 1) : 1;
+
+    function prodFor(type, extra){
+      const pts = vectorOfPositions(type);
+      const def = getDef(type);
+      let output=0;
+      for(const p of pts){
+        const A = def.base;
+        const ag = agglomerationBoost(pts, p); // внутри своей отрасли
+        const acc = availabilityFactor(type==='farm' ? resPts : vectorOfPositions('hub').length?vectorOfPositions('hub'):resPts, p);
+        const human = clamp(0.6 + 0.4*accessEdu, 0.3, 1.1); // человеческий капитал
+        const env = clamp(1 - 0.2*globalPollution(), 0.6, 1);
+        // Налоговый «клин»: более высокий налог на прибыль снижает инвестиции/производительность
+        const taxProd = def.kind==='prod' ? Math.pow(1 - params.corpTax, 0.5) : 1; // 40% ⇒ ~0.77
+        // Von Thünen: фермам выгоднее ближе к рынку/жилью — штраф за даль
+        const vt = type==='farm' ? (0.7 + 0.3*acc) : 1;
+        output += A * (1 + ag) * (0.6 + 0.4*acc) * energyFactor * human * env * vt * taxProd;
+      }
+      return output;
+    }
+
+    const YcommPot = prodFor('comm');
+    const YfarmPot = prodFor('farm');
+    const YfactPot = prodFor('fact');
+    const GDPpot = YcommPot + YfarmPot + YfactPot;
+
+    // 4.4. Экология: значения из computeEco
+    const emissions = eco.emissions;
+    const abs = eco.abs;
+    const netPollution = eco.netPollution;
+
+    // 4.5. Население и занятость
+    const LF = 0.5; // доля трудоспособных
+    const desirability = clamp(0.35 + 0.25*amenityPark + 0.2*accessHosp + 0.2*accessJobs - 0.35*globalPollution(), 0.1, 1.0);
+    const occ = clamp(0.3 + 0.7*desirability, 0, 1);
+    const jobMatch = housingCap>0 ? clamp(jobsTotal/(housingCap*LF+1e-6), 0, 1.4) : 0;
+    const population = Math.floor(housingCap * occ * (0.6 + 0.4*Math.min(1, jobMatch)));
+    const labor = population * LF;
+    const employed = Math.min(jobsTotal, Math.round(labor));
+    const unemployment = labor>0 ? 1 - (employed/labor) : 0;
+
+    // Капвовлечённость / загрузка мощностей: выпуски зависят от наличия труда
+    const U = jobsTotal>0 ? (employed / jobsTotal) : 0; // 0..1
+    const Ycomm = YcommPot * U;
+    const Yfarm = YfarmPot * U;
+    const Yfact = YfactPot * U;
+    const GDP = Ycomm + Yfarm + Yfact;
+
+    // 4.6. Доходы/бюджет
+    const avgWage = 42000 * (0.8 + 0.2 * (GDP/(Math.max(1,jobsTotal)*100))); // растёт с производительностью
+    const wagesMass = employed * avgWage;
+    const incomeTax = wagesMass * params.incTax;
+    const corpTax = GDP * params.corpTax;
+    const propertyTax = totalBuildings() * 500; // условно
+    const revenue = incomeTax + corpTax + propertyTax;
+    const serviceCost = population * params.svcCost + (vectorOfPositions('school').length*20000 + vectorOfPositions('hosp').length*40000);
+    const balance = revenue - serviceCost;
+
+    // 4.7. Социальные индексы
+    const healthIdx = clamp(0.4 + 0.3*accessHosp + 0.1*mobility - 0.45*globalPollution(), 0, 1);
+    const eduIdx = clamp(0.3 + 0.7*accessEdu, 0, 1);
+    const accessIdx = clamp(0.3 + 0.7*accessJobs, 0, 1);
+    const energyAdeq = energyDemand>0 ? energyFactor : 1;
+
+    // 4.8. Сохранить и отрисовать
+    state.metrics = {
+      housingCap, jobsTotal, powerSupply, energyDemand,
+      GDP, Ycomm, Yfarm, Yfact,
+      emissions, abs, netPollution, pollutionExposure, pollutionIdx: eco.pollutionIdx,
+      population, employed, unemployment,
+      revenue, serviceCost, balance,
+      avgWage, healthIdx, eduIdx, accessIdx, energyAdeq,
+      mobility, capUtil: U,
+      corpTaxRevenue: corpTax, incomeTaxRevenue: incomeTax, propertyTaxRevenue: propertyTax
+    };
+
+    renderHUD();
+    renderMeters();
+  }
+
+  function totalBuildings(){
+    let n=0; for(const id of Object.keys(state.positions)){ n += state.positions[id].length; } return n;
+  }
+
+  function getDef(id){ return CATALOG.find(x=>x.id===id) || {}; }
+
+  // ======================
+  // 5) HUD и индикаторы
+  // ======================
+  function fmtMoney(v){
+    const neg = v<0; v=Math.abs(v);
+    if(v>=1e9) return (neg?'-':'') + (v/1e9).toFixed(2)+' млрд';
+    if(v>=1e6) return (neg?'-':'') + (v/1e6).toFixed(1)+' млн';
+    if(v>=1e3) return (neg?'-':'') + (v/1e3).toFixed(1)+' тыс';
+    return (neg?'-':'') + v.toFixed(0);
+  }
+
+  function kp(label, value, unit='', cls=''){
+    return `<div class="kpi ${cls}"><div class="label">${label}</div><div class="value">${value}${unit}</div></div>`
+  }
+
+  function renderHUD(){
+    const m = state.metrics; if(!m) return;
+    hudEl.innerHTML = [
+      kp('Население', fmtMoney(m.population), ''),
+      kp('Вакансии', fmtMoney(m.jobsTotal), ''),
+      kp('Занятость', (m.employed||0).toLocaleString('ru-RU'), ''),
+      kp('Безработица', Math.round((m.unemployment||0)*100)+'%', ''),
+      kp('ВВП (услов.)', fmtMoney(m.GDP), ''),
+      kp('Налоговые доходы', fmtMoney(m.revenue), ''),
+      kp('Бюджет', (m.balance>=0?'':'−')+fmtMoney(Math.abs(m.balance)), m.balance>=0?' (профицит)':' (дефицит)')
+    ].join('');
+  }
+
+  function meter(label, val, goodDir='up', hint=''){
+    const v = clamp(val,0,1);
+    const w = Math.round(v*100);
+    let txt = w+'%';
+    return `<div class="meter"><div class="top"><div>${label}</div><div class="small">${hint}</div></div><div class="bar"><i style="width:${w}%"></i></div></div>`
+  }
+
+  function renderMeters(){
+    const m = state.metrics; if(!m) return;
+    metersEl.innerHTML = [
+      meter('Доступность рабочих мест', m.accessIdx, 'up', 'гравитационный индекс'),
+      meter('Здоровье населения', m.healthIdx, 'up', 'больницы − загрязнения'),
+      meter('Образование / навыки', m.eduIdx, 'up', 'школы/университеты'),
+      meter('Энергообеспечение', m.energyAdeq, 'up', `${m.powerSupply.toFixed(0)} из ${m.energyDemand.toFixed(0)} усл.ед.`),
+      meter('Мобильность', m.mobility, 'up', 'транспортная доступность'),
+      meter('Загрязнение (больше хуже)', m.pollutionIdx, 'down', `эмиссии−абсорбция`),
+      meter('Доходы бюджета (после расходов)', clamp(0.5 + Math.atan(m.balance/200000)/Math.PI, 0,1), 'up', `${m.balance>=0?'профицит':'дефицит'}`)
+    ].join('');
+  }
+
+  // ======================
+  // 6) Экспорт / Импорт / Сброс
+  // ======================
+  function exportScenario(){
+    const data = { cells: state.cells, params };
+    const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'econ-sim-scenario.json';
+    a.click();
+  }
+
+  function importScenario(){
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'application/json';
+    inp.onchange = ()=>{
+      const file = inp.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const data = JSON.parse(reader.result);
+          if(!data.cells) throw new Error('Нет поля cells');
+          // восстановить структуру
+          for(let r=0;r<GRID_ROWS;r++){
+            for(let c=0;c<GRID_COLS;c++){
+              const v = data.cells[r][c];
+              state.cells[r][c] = v ? {id:v.id} : null;
+            }
+          }
+          // восстановить positions
+          state.positions = {};
+          for(let r=0;r<GRID_ROWS;r++) for(let c=0;c<GRID_COLS;c++){
+            const v = state.cells[r][c]; if(!v) continue;
+            if(!state.positions[v.id]) state.positions[v.id] = [];
+            state.positions[v.id].push({r,c});
+          }
+          if(data.params){ Object.assign(params, data.params); syncParamUI(); }
+          redrawAll(); recalcAll();
+          notify('Сценарий загружен');
+        }catch(err){ alert('Ошибка импорта: '+err.message); }
+      };
+      reader.readAsText(file);
+    };
+    inp.click();
+  }
+
+  function resetGrid(){
+    state.cells = Array.from({length: GRID_ROWS}, () => Array.from({length: GRID_COLS}, () => null));
+    state.positions = {};
+    redrawAll(); recalcAll();
+  }
+
+  function redrawAll(){
+    for(let r=0;r<GRID_ROWS;r++) for(let c=0;c<GRID_COLS;c++) drawCell(r,c);
+  }
+
+  // ======================
+  // 7) Параметры (слайдеры)
+  // ======================
+  function syncParamUI(){
+    document.getElementById('corpTax').value = Math.round(params.corpTax*100);
+    document.getElementById('incTax').value = Math.round(params.incTax*100);
+    document.getElementById('aggl').value = Math.round(params.aggl*100);
+    document.getElementById('decay').value = Math.round(params.decay*100);
+    document.getElementById('svc').value = (params.svcCost/1000).toFixed(1);
+    document.getElementById('corpTaxLabel').textContent = Math.round(params.corpTax*100)+'%';
+    document.getElementById('incTaxLabel').textContent = Math.round(params.incTax*100)+'%';
+    document.getElementById('agglLabel').textContent = params.aggl.toFixed(2);
+    document.getElementById('decayLabel').textContent = params.decay.toFixed(2);
+    document.getElementById('svcLabel').textContent = '$'+(params.svcCost/1000).toFixed(1)+'k';
+  }
+
+  function hookParam(id, cb){ document.getElementById(id).addEventListener('input', cb); }
+
+  // ======================
+  // 8) Инициализация
+  // ======================
+
+  // ---------- Guided Tour Engine ----------
+  const tour = {
+    active:false, step:0, prevPoll:null, startCorpTax:null,
+    get overlay(){ return document.getElementById('tour'); },
+    get shades(){ return {
+      top: this.overlay.querySelector('.shade.top'),
+      left: this.overlay.querySelector('.shade.left'),
+      right: this.overlay.querySelector('.shade.right'),
+      bottom: this.overlay.querySelector('.shade.bottom')
+    }},
+    panel: null,
+    steps: [],
+    start(){
+      this.steps = this.buildSteps();
+      this.active = true; this.step = 0; this.panel = document.getElementById('tourPanel');
+      this.overlay.classList.remove('hidden');
+      this.goto(0);
+      window.addEventListener('resize', ()=>this.position());
+      window.addEventListener('scroll', ()=>this.position(), true);
+    },
+    finish(){ this.active=false; this.overlay.classList.add('hidden'); document.querySelectorAll('.pulse').forEach(n=>n.classList.remove('pulse')); },
+    skip(){ this.finish(); },
+    goto(i){
+      this.step = Math.max(0, Math.min(i, this.steps.length-1));
+      const s = this.steps[this.step];
+      if(s.onEnter) s.onEnter();
+      this.renderPanel(s);
+      this.position();
+      this.evaluate();
+    },
+    next(){ if(this.step < this.steps.length-1){ this.goto(this.step+1); } else { this.finish(); } },
+    prev(){ if(this.step>0) this.goto(this.step-1); },
+    targetEl(){
+      const sel = this.steps[this.step].target; if(!sel) return null; return document.querySelector(sel);
+    },
+    position(){
+      const s = this.steps[this.step]; const el = this.targetEl(); if(!el) return;
+      const r = el.getBoundingClientRect(); const pad = 10;
+      const top = Math.max(0, r.top - pad), left = Math.max(0, r.left - pad);
+      const right = Math.min(window.innerWidth, r.right + pad);
+      const bottom = Math.min(window.innerHeight, r.bottom + pad);
+      const midTop = top, midHeight = bottom - top;
+      const shades = this.shades;
+      // 4-прямоугольника вокруг выделенной области
+      shades.top.style.top = '0px'; shades.top.style.left='0px'; shades.top.style.width='100vw'; shades.top.style.height = midTop+'px';
+      shades.left.style.top = midTop+'px'; shades.left.style.left='0px'; shades.left.style.width = left+'px'; shades.left.style.height = midHeight+'px';
+      shades.right.style.top = midTop+'px'; shades.right.style.left = right+'px'; shades.right.style.width = (window.innerWidth - right)+'px'; shades.right.style.height = midHeight+'px';
+      shades.bottom.style.left='0px'; shades.bottom.style.top = bottom+'px'; shades.bottom.style.width='100vw'; shades.bottom.style.height = (window.innerHeight - bottom)+'px';
+      // Панель рядом с целью
+      const panel = this.panel; if(!panel) return;
+      panel.style.top = Math.min(window.innerHeight - panel.offsetHeight - 12, bottom + 12) + 'px';
+      panel.style.left = Math.min(window.innerWidth - panel.offsetWidth - 12, left) + 'px';
+      // Блокировать клики вне зоны?
+      this.overlay.style.pointerEvents = (s.allowInteract? 'none':'auto');
+      // Пульсация цели
+      document.querySelectorAll('.pulse').forEach(n=>n.classList.remove('pulse'));
+      el.classList.add('pulse');
+    },
+    evaluate(){
+      const s = this.steps[this.step];
+      const nextBtn = document.getElementById('tourNext');
+      if(!s.waitFor){ nextBtn.disabled = false; return; }
+      let ok=false; try{ ok = !!s.waitFor(); }catch(e){ ok=false; }
+      nextBtn.disabled = !ok;
+      if(ok && s.autoNext){ setTimeout(()=>{ if(this.step < this.steps.length-1) this.next(); }, 350); }
+    },
+    renderPanel(s){
+      document.getElementById('tourContent').innerHTML = s.html;
+      document.getElementById('tourPrev').disabled = this.step===0;
+      document.getElementById('tourNext').textContent = this.step===this.steps.length-1? 'Готово' : 'Далее';
+    },
+    onMetrics(){ if(this.active) this.evaluate(); },
+    buildSteps(){
+      const hasRes = ()=> (vectorOfPositions('res').length>=1);
+      const hasFact = ()=> (vectorOfPositions('fact').length>=1);
+      const hasHub = ()=> (vectorOfPositions('hub').length>=1);
+      const energyGood = ()=> (state.metrics.energyAdeq>0.7);
+      const mobilityGood = ()=> (state.metrics.mobility>0);
+      return [
+        { target:'#catalog', allowInteract:false, html:`<b>Каталог объектов</b><br/>Перетаскивайте объекты на карту: жильё, фермы, заводы, парки, инфраструктура. Каждый тип влияет на занятость, ВВП, экологию и бюджет. Начнём со <em>Жилого дома</em>.` },
+        { target:'#grid', allowInteract:true, html:`<b>Карта‑сетка</b><br/>Каждая клетка — сектор. Важны расстояния: <ul><li>Работа ближе к жилью → выше доступность и занятость.</li><li>Агломерация: схожие фирмы рядом получают бонус к выпуску.</li><li>Загрязнение уменьшается парками ближе к источнику.</li><li>Транспортные узлы снижают «эффективные» расстояния.</li><li>Энергия ограничивает выпуск.</li></ul><b>Действие:</b> перетащите <em>Жилой дом</em> на карту.`, waitFor: hasRes, autoNext:true },
+        { target:'#hud', allowInteract:false, html:`<b>KPI</b><br/>Сверху — моментальные индикаторы: население, занятость, ВВП, налоги и бюджет.` },
+        { target:".item[data-type='fact']", allowInteract:true, html:`<b>Промышленность</b><br/>Поставьте <em>Завод</em> и посмотрите, как растут вакансии и загрязнение. Рядом с жильём — выше доступность труда, но и влияние на здоровье.`, waitFor: hasFact, autoNext:true },
+        { target:".item[data-type='power']", allowInteract:true, html:`<b>Энергия</b><br/>Добавьте <em>Электростанцию</em>. Показатель «Энергообеспечение» должен приблизиться к 100% — иначе выпуск ограничен.`, waitFor: energyGood, autoNext:true },
+        { target:".item[data-type='hub']", allowInteract:true, html:`<b>Транспорт</b><br/>Поставьте <em>Транспортный узел</em> возле жилья. Смотрите на «Мобильность» и косвенно на здоровье.`, waitFor: mobilityGood, autoNext:true },
+        { target:".item[data-type='park']", allowInteract:true, html:`<b>Экология</b><br/>Поставьте <em>Парк</em> ближе к заводу и отслеживайте «Загрязнение». Чем ближе парк к источнику, тем сильнее эффект.`, onEnter:()=>{ this.prevPoll = state.metrics.pollutionIdx; }, waitFor: ()=> state.metrics.pollutionIdx < (this.prevPoll||1) - 0.02, autoNext:true },
+        { target:'.sidebar', allowInteract:false, html:`<b>Параметры модели</b><br/>Подвигайте <em>Налог на прибыль</em> — увидите изменение ВВП и бюджета через налоговый клин.`, onEnter:()=>{ this.startCorpTax = params.corpTax; }, waitFor: ()=> params.corpTax !== this.startCorpTax },
+        { target:'#btn-export', allowInteract:false, html:`<b>Экспорт/Импорт</b><br/>Сохраняйте сценарии в JSON и делитесь ими. На этом всё — приятного моделирования!` }
+      ];
+    }
+  };
+
+  function init(){
+    renderCatalog();
+    renderGrid();
+
+    // кнопки
+    document.getElementById('btn-export').onclick = exportScenario;
+    document.getElementById('btn-import').onclick = importScenario;
+    document.getElementById('btn-guide').onclick = ()=> tour.start();
+    // guided tour controls
+    document.getElementById('tourNext').onclick = ()=> tour.next();
+    document.getElementById('tourPrev').onclick = ()=> tour.prev();
+    document.getElementById('tourSkip').onclick = ()=> tour.skip();
+    document.getElementById('btn-reset').onclick = ()=>{ if(confirm('Сбросить карту?')) resetGrid(); };
+
+    // параметры
+    hookParam('corpTax', e=>{ params.corpTax = (+e.target.value)/100; syncParamUI(); recalcAll(); });
+    hookParam('incTax', e=>{ params.incTax = (+e.target.value)/100; syncParamUI(); recalcAll(); });
+    hookParam('aggl', e=>{ params.aggl = (+e.target.value)/100; syncParamUI(); recalcAll(); });
+    hookParam('decay', e=>{ params.decay = (+e.target.value)/100; syncParamUI(); recalcAll(); });
+    hookParam('svc', e=>{ params.svcCost = (+e.target.value)*1000; syncParamUI(); recalcAll(); });
+
+    syncParamUI();
+
+    // демо-заполнение
+    demoSeed();
+    recalcAll();
+  }
+
+  // При пересчёте метрик — обновлять состояние гайда
+  const _recalcAll = recalcAll;
+  recalcAll = function(){ _recalcAll(); tour.onMetrics(); };
+
+  function demoSeed(){
+    const placements = [
+      ['res', 6,4], ['res',6,5], ['res',7,4], ['res',7,5],
+      ['comm',5,10], ['comm',6,10],
+      ['farm',9,2], ['farm',9,3],
+      ['fact',4,14], ['fact',5,15],
+      ['power',2,17],
+      ['park',7,7], ['park',8,7],
+      ['school',6,3], ['hosp',6,7],
+      ['hub',5,8], ['uni',4,6]
+    ];
+    for(const [t,r,c] of placements){ placeAt(t,r,c); }
+  }
+
+  init();
+
+  </script>
+
+  <footer class="wrap" style="opacity:.8;margin-bottom:40px">
+    <p class="help">Модель носит учебно‑демонстрационный характер. Формулы основаны на известных подходах (Кобб‑Дуглас, гравитационная доступность, эффекты агломерации, экологические экстерналии), но калибровка параметров упрощена. Расширяйте справочник объектов, добавляйте транспорт/зонирование, динамику по времени и сценарии политики — всё в одном HTML‑файле.</p>
+  </footer>
 </body>
 </html>
