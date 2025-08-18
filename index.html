@@ -751,7 +751,7 @@
     // кнопки
     document.getElementById('btn-export').onclick = exportScenario;
     document.getElementById('btn-import').onclick = importScenario;
-    document.getElementById('btn-guide').onclick = ()=> tour.start();
+    document.getElementById('btn-guide').onclick = ()=>{ resetGrid(); tour.start(); };
     // guided tour controls
     document.getElementById('tourNext').onclick = ()=> tour.next();
     document.getElementById('tourPrev').onclick = ()=> tour.prev();
