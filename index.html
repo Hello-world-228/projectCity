@@ -30,11 +30,6 @@
 
     .palette h2, .sidebar h2{margin:0 0 10px 0;font-size:15px}
     .catalog{display:grid;grid-template-columns:repeat(2, 1fr);gap:10px}
-    .item{border:1px solid #243053;background:linear-gradient(180deg,#141c2e,#0e162a);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;user-select:none;cursor:grab}
-    .item:active{cursor:grabbing}
-    .item .icon{font-size:22px}
-    .item .name{font-weight:600}
-    .item .note{color:var(--muted);font-size:12px}
 
     section.board{position:relative;background:linear-gradient(180deg, #0b1120, #0a0f1e);border:1px solid #1b2346;border-radius:var(--br);box-shadow:var(--shadow);padding:12px}
     .hud{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px}
@@ -73,14 +68,22 @@
       .hud{grid-template-columns:repeat(3,1fr)}
     }
       /* === Guided Tour === */
-    .tour{position:fixed;inset:0;z-index:10000}
+    .tour{position:fixed;inset:0;z-index:10000;pointer-events:none}
     .tour.hidden{display:none}
     .tour .shade{position:fixed;background:rgba(2,8,23,.62);pointer-events:auto}
-    .tour .panel{position:fixed;max-width:460px;background:linear-gradient(180deg,#121a33,#0f162b);border:1px solid #1e2a4c;border-radius:16px;box-shadow:var(--shadow);padding:12px 14px;color:var(--text)}
+    .tour .panel{position:fixed;max-width:460px;background:linear-gradient(180deg,#121a33,#0f162b);border:1px solid #1e2a4c;border-radius:16px;box-shadow:var(--shadow);padding:12px 14px;color:var(--text);pointer-events:auto}
     .tour .panel .content{font-size:14px;line-height:1.4}
     .tour .panel .controls{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
     .tour .panel .btn[disabled]{opacity:.5;cursor:not-allowed}
-    .tour .pulse{box-shadow:0 0 0 2px rgba(110,231,255,.9), 0 0 0 8px rgba(110,231,255,.15);border-radius:10px}
+    .pulse{box-shadow:0 0 0 2px rgba(110,231,255,.9), 0 0 0 8px rgba(110,231,255,.15);border-radius:10px}
+
+    .item{border:1px solid #243053;background:linear-gradient(180deg,#141c2e,#0e162a);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;user-select:none;cursor:grab;position:relative}
+    .item:active{cursor:grabbing}
+    .item .icon{font-size:22px}
+    .item .name{font-weight:600}
+    .item .note{color:var(--muted);font-size:12px}
+    .item .info{position:absolute;top:6px;right:6px;font-size:14px;opacity:.8;cursor:pointer}
+    .item .info:hover{opacity:1}
   </style>
 </head>
 <body>
@@ -209,6 +212,21 @@
     setTimeout(()=>toastEl.classList.remove('show'), 1500);
   }
 
+  function showInfo(o){
+    const parts = [];
+    if(o.housing) parts.push(`жильё +${o.housing}`);
+    if(o.jobs) parts.push(`вакансии +${o.jobs}`);
+    if(o.power) parts.push(`энергия +${o.power}`);
+    if(o.transport) parts.push(`мобильность +${o.transport}`);
+    if(o.edu) parts.push(`образование +${o.edu}`);
+    if(o.health) parts.push(`здоровье +${o.health}`);
+    if(o.absorb) parts.push(`экология +${o.absorb}`);
+    parts.push(`энергия ${o.energy}`);
+    parts.push(`загрязнение ${o.pollution}`);
+    parts.push(`стоимость $${o.cost}k`);
+    notify(`${o.name}: ${parts.join(', ')}`);
+  }
+
   // ======================
   // 3) Рендер каталога и сетки
   // ======================
@@ -219,10 +237,13 @@
       card.className = 'item';
       card.draggable = true;
       card.dataset.type = o.id;
-      card.innerHTML = `<div class="icon">${o.icon}</div><div class="name">${o.name}</div><div class="note">${o.kind}</div>`;
+      card.innerHTML = `<div class="icon">${o.icon}</div><div class="name">${o.name}</div><div class="note">${o.kind}</div><div class="info">ℹ</div>`;
       card.addEventListener('dragstart', e=>{
         e.dataTransfer.setData('text/plain', o.id);
       });
+      const infoBtn = card.querySelector('.info');
+      infoBtn.addEventListener('click', e=>{ e.stopPropagation(); showInfo(o); });
+      infoBtn.addEventListener('mousedown', e=>e.stopPropagation());
       catalogEl.appendChild(card);
     }
   }
@@ -682,7 +703,9 @@
       panel.style.top = Math.min(window.innerHeight - panel.offsetHeight - 12, bottom + 12) + 'px';
       panel.style.left = Math.min(window.innerWidth - panel.offsetWidth - 12, left) + 'px';
       // Блокировать клики вне зоны?
-      this.overlay.style.pointerEvents = (s.allowInteract? 'none':'auto');
+      for(const sh of Object.values(this.shades)){
+        sh.style.pointerEvents = s.allowInteract? 'none':'auto';
+      }
       // Пульсация цели
       document.querySelectorAll('.pulse').forEach(n=>n.classList.remove('pulse'));
       el.classList.add('pulse');
