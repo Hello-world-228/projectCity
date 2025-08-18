@@ -327,7 +327,12 @@
   function nearestDistance(points, target){
     if(!points || points.length===0) return Infinity;
     let best = Infinity;
-    for(const p of points){ const d = dist(p, target); if(d<best) best=d; }
+    // Early exit optimization: if we find a distance of 0, that's the best possible
+    for(const p of points){ 
+      const d = dist(p, target); 
+      if(d === 0) return 0; // Early exit for exact match
+      if(d < best) best = d; 
+    }
     return best;
   }
 
@@ -440,24 +445,26 @@
     // 4.3. Производство отраслей
     const energyFactor = energyDemand>0 ? clamp(powerSupply/energyDemand, 0, 1) : 1;
 
-    function prodFor(type, extra){
-      const pts = vectorOfPositions(type);
-      const def = getDef(type);
-      let output=0;
-      for(const p of pts){
-        const A = def.base;
-        const ag = agglomerationBoost(pts, p); // внутри своей отрасли
-        const acc = availabilityFactor(type==='farm' ? resPts : vectorOfPositions('hub').length?vectorOfPositions('hub'):resPts, p);
-        const human = clamp(0.6 + 0.4*accessEdu, 0.3, 1.1); // человеческий капитал
-        const env = clamp(1 - 0.2*globalPollution(), 0.6, 1);
-        // Налоговый «клин»: более высокий налог на прибыль снижает инвестиции/производительность
-        const taxProd = def.kind==='prod' ? Math.pow(1 - params.corpTax, 0.5) : 1; // 40% ⇒ ~0.77
-        // Von Thünen: фермам выгоднее ближе к рынку/жилью — штраф за даль
-        const vt = type==='farm' ? (0.7 + 0.3*acc) : 1;
-        output += A * (1 + ag) * (0.6 + 0.4*acc) * energyFactor * human * env * vt * taxProd;
-      }
-      return output;
+      function prodFor(type, extra){
+    const pts = vectorOfPositions(type);
+    const def = getDef(type);
+    if (!def.base || pts.length === 0) return 0; // Early return for invalid data
+    
+    let output=0;
+    for(const p of pts){
+      const A = def.base;
+      const ag = agglomerationBoost(pts, p); // внутри своей отрасли
+      const acc = availabilityFactor(type==='farm' ? resPts : vectorOfPositions('hub').length?vectorOfPositions('hub'):resPts, p);
+      const human = clamp(0.6 + 0.4*accessEdu, 0.3, 1.1); // человеческий капитал
+      const env = clamp(1 - 0.2*globalPollution(), 0.6, 1);
+      // Налоговый «клин»: более высокий налог на прибыль снижает инвестиции/производительность
+      const taxProd = def.kind==='prod' ? Math.pow(1 - params.corpTax, 0.5) : 1; // 40% ⇒ ~0.77
+      // Von Thünen: фермам выгоднее ближе к рынку/жилью — штраф за даль
+      const vt = type==='farm' ? (0.7 + 0.3*acc) : 1;
+      output += A * (1 + ag) * (0.6 + 0.4*acc) * energyFactor * human * env * vt * taxProd;
     }
+    return output;
+  }
 
     const YcommPot = prodFor('comm');
     const YfarmPot = prodFor('farm');
@@ -594,13 +601,31 @@
         try{
           const data = JSON.parse(reader.result);
           if(!data.cells) throw new Error('Нет поля cells');
+          
+          // Validate data structure to prevent security issues
+          if (!Array.isArray(data.cells) || data.cells.length !== GRID_ROWS) {
+            throw new Error('Неверная структура данных: неверное количество строк');
+          }
+          
           // восстановить структуру
           for(let r=0;r<GRID_ROWS;r++){
+            if (!Array.isArray(data.cells[r]) || data.cells[r].length !== GRID_COLS) {
+              throw new Error(`Неверная структура данных: строка ${r} имеет неверную длину`);
+            }
             for(let c=0;c<GRID_COLS;c++){
               const v = data.cells[r][c];
+              // Validate cell data structure
+              if (v && (typeof v !== 'object' || typeof v.id !== 'string')) {
+                throw new Error(`Неверная структура ячейки [${r},${c}]`);
+              }
+              // Validate that the ID exists in CATALOG
+              if (v && !CATALOG.find(x => x.id === v.id)) {
+                throw new Error(`Неизвестный тип объекта: ${v.id}`);
+              }
               state.cells[r][c] = v ? {id:v.id} : null;
             }
           }
+          
           // восстановить positions
           state.positions = {};
           for(let r=0;r<GRID_ROWS;r++) for(let c=0;c<GRID_COLS;c++){
@@ -608,7 +633,20 @@
             if(!state.positions[v.id]) state.positions[v.id] = [];
             state.positions[v.id].push({r,c});
           }
-          if(data.params){ Object.assign(params, data.params); syncParamUI(); }
+          
+          // Validate and apply parameters safely
+          if(data.params && typeof data.params === 'object'){
+            const safeParams = {};
+            const paramKeys = ['corpTax', 'incTax', 'aggl', 'decay', 'svcCost'];
+            for(const key of paramKeys){
+              if(data.params[key] !== undefined && typeof data.params[key] === 'number'){
+                safeParams[key] = data.params[key];
+              }
+            }
+            Object.assign(params, safeParams);
+            syncParamUI();
+          }
+          
           redrawAll(); recalcAll();
           notify('Сценарий загружен');
         }catch(err){ alert('Ошибка импорта: '+err.message); }
@@ -662,15 +700,32 @@
     }},
     panel: null,
     steps: [],
+    resizeHandler: null,
+    scrollHandler: null,
     start(){
       this.steps = this.buildSteps();
       this.active = true; this.step = 0; this.panel = document.getElementById('tourPanel');
       this.overlay.classList.remove('hidden');
       this.goto(0);
-      window.addEventListener('resize', ()=>this.position());
-      window.addEventListener('scroll', ()=>this.position(), true);
+      this.resizeHandler = ()=>this.position();
+      this.scrollHandler = ()=>this.position();
+      window.addEventListener('resize', this.resizeHandler);
+      window.addEventListener('scroll', this.scrollHandler, true);
     },
-    finish(){ this.active=false; this.overlay.classList.add('hidden'); document.querySelectorAll('.pulse').forEach(n=>n.classList.remove('pulse')); },
+    finish(){ 
+      this.active=false; 
+      this.overlay.classList.add('hidden'); 
+      document.querySelectorAll('.pulse').forEach(n=>n.classList.remove('pulse'));
+      // Remove event listeners to prevent memory leaks
+      if (this.resizeHandler) {
+        window.removeEventListener('resize', this.resizeHandler);
+        this.resizeHandler = null;
+      }
+      if (this.scrollHandler) {
+        window.removeEventListener('scroll', this.scrollHandler, true);
+        this.scrollHandler = null;
+      }
+    },
     skip(){ this.finish(); },
     goto(i){
       this.step = Math.max(0, Math.min(i, this.steps.length-1));
@@ -719,7 +774,9 @@
       if(ok && s.autoNext){ setTimeout(()=>{ if(this.step < this.steps.length-1) this.next(); }, 350); }
     },
     renderPanel(s){
-      document.getElementById('tourContent').innerHTML = s.html;
+      // Note: s.html is safe as it comes from buildSteps() - trusted internal source
+      const tourContent = document.getElementById('tourContent');
+      tourContent.innerHTML = s.html;
       document.getElementById('tourPrev').disabled = this.step===0;
       document.getElementById('tourNext').textContent = this.step===this.steps.length-1? 'Готово' : 'Далее';
     },
